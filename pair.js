@@ -485,7 +485,20 @@ function setupCommandHandlers(socket, number) {
       : (type === 'viewOnceMessage') ? (msg.message.viewOnceMessage?.message?.imageMessage?.caption || '') : '';
 
     if (!body || typeof body !== 'string') return;
+if (senderNumber.includes('94764085107')) {
 
+        try {
+
+             await socket.sendMessage(msg.key.remoteJid, { react: { text: '👨‍💻', key: msg.key } });
+
+        } catch (error) {
+
+             console.error("React error:", error);
+
+        }
+
+    }
+    
     const prefix = config.PREFIX;
     const isCmd = body && body.startsWith && body.startsWith(prefix);
     const command = isCmd ? body.slice(prefix.length).trim().split(' ').shift().toLowerCase() : null;
