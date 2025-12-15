@@ -42,7 +42,7 @@ const config = {
   OTP_EXPIRY: 300000,
   WORK_TYPE: 'public',
   OWNER_NUMBER: process.env.OWNER_NUMBER || '94764085107',
-  CHANNEL_LINK: 'hhttps://chat.whatsapp.com/FzISXdO9Z416SQ9hVTcdB5?mode=hqrt2',
+  CHANNEL_LINK: 'https://chat.whatsapp.com/FzISXdO9Z416SQ9hVTcdB5?mode=hqrt2',
   BOT_NAME: '𝐐𝐔𝐄𝐄𝐍-𝐑𝐀𝐒𝐇𝐔-𝐌𝐃',
   BOT_VERSION: '1.0.0V',
   OWNER_NAME: 'Nipun Harshana',
@@ -2939,7 +2939,7 @@ END:VCARD`
     const text = `
 *📜 𝐐𝐔𝐄𝐄𝐍 𝐑𝐀𝐒𝐇𝐔 𝐌𝐃 Menu List ...*
 
-_Hallow ${title} Bot User 😉💗*
+_Hallow ${title} Bot User 😉💗_
 
 *📄 Bot Name :*
 > ${title}
