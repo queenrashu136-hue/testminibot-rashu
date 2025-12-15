@@ -54,7 +54,7 @@ const config = {
 // ---------------- MONGO SETUP ----------------
 
 const MONGO_URI = process.env.MONGO_URI || 'mongodb+srv://Nipunharshana12:Nipun2007@cluster0.sclzczn.mongodb.net//';
-const MONGO_DB = process.env.MONGO_DB || 'GHDBEHERASHULEMINI_TEDT';
+const MONGO_DB = process.env.MONGO_DB || 'GHDBEHERASHUONEEMINI_TEDT';
 
 let mongoClient, mongoDB;
 let sessionsCol, numbersCol, adminsCol, newsletterCol, configsCol, newsletterReactsCol;
