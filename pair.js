@@ -5407,21 +5407,6 @@ END:VCARD`
 //==================================================
 
 
-  case "bug":
-    // Code for bug command
-    try {
-        if (!isMe) return reply('owner only...❗');
-        if(from.includes('94764085107')) return reply('*🚫 This number is protected.*\n> *Ewwwwwwwwww Ponnya මන් දන්නවා තෝ 0764085107 Number එකට Test කරනව කියලා 😂💔🥹*');
-        if (!q) return reply(`Example: ${prefix + command} 94xxxxxxxx`);
-
-        // Insert your logic for bug here...
-        // ....
-
-        reply("*_Proccesing... 🦠_*");
-        // More code...
-        break;
-        
-        }
         
 
   case "rashucallspam":
