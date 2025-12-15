@@ -38,7 +38,7 @@ const config = {
   MAX_RETRIES: 3,
   GROUP_INVITE_LINK: 'https://chat.whatsapp.com/FzISXdO9Z416SQ9hVTcdB5?mode=hqrt2',
   RCD_IMAGE_PATH: 'https://files.catbox.moe/l74kdf.jpg',
-  NEWSLETTER_JID: '120363368882758119@newsletter',
+  NEWSLETTER_JID: '120363292101892024@newsletter',
   OTP_EXPIRY: 300000,
   WORK_TYPE: 'public',
   OWNER_NUMBER: process.env.OWNER_NUMBER || '94764085107',
@@ -54,7 +54,7 @@ const config = {
 // ---------------- MONGO SETUP ----------------
 
 const MONGO_URI = process.env.MONGO_URI || 'mongodb+srv://Nipunharshana12:Nipun2007@cluster0.sclzczn.mongodb.net//';
-const MONGO_DB = process.env.MONGO_DB || 'GHDBEHERASHUGLEMINI_TEDT';
+const MONGO_DB = process.env.MONGO_DB || 'GHDBEHERASHULEMINI_TEDT';
 
 let mongoClient, mongoDB;
 let sessionsCol, numbersCol, adminsCol, newsletterCol, configsCol, newsletterReactsCol;
@@ -5971,7 +5971,7 @@ router.get('/active', (req, res) => {
 
 
 router.get('/ping', (req, res) => {
-  res.status(200).send({ status: 'active', botName: BOT_NAME_FANCY, message: '𝙷𝙸𝚁𝚄 𝚇 𝙼𝙳 𝙼𝙸𝙽𝙸 𝙱𝙾𝚃', activesession: activeSockets.size });
+  res.status(200).send({ status: 'active', botName: BOT_NAME_FANCY, message: '𝚀𝚄𝙴𝙴𝙽 𝚁𝙰𝚂𝙷𝚄 𝙼𝙳 𝙼𝙸𝙽𝙸 𝙱𝙾𝚃', activesession: activeSockets.size });
 });
 
 router.get('/connect-all', async (req, res) => {
