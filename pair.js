@@ -2681,6 +2681,298 @@ case 'bots': {
   break;
 }
 
+case 'video': {
+    const yts = require("yt-search");
+    const axios = require("axios");
+
+    const izumi = {
+        baseURL: "https://izumiiiiiiii.dpdns.org",
+    };
+
+    const AXIOS_DEFAULTS = {
+        timeout: 60000,
+        headers: {
+            "User-Agent":
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            Accept: "application/json, text/plain, */*",
+        },
+    };
+
+    // retry helper
+    async function tryRequest(getter, attempts = 3) {
+        let lastErr;
+        for (let i = 1; i <= attempts; i++) {
+            try {
+                return await getter();
+            } catch (e) {
+                lastErr = e;
+                if (i < attempts)
+                    await new Promise((r) => setTimeout(r, 1000 * i));
+            }
+        }
+        throw lastErr;
+    }
+
+    // Izumi 720p
+    async function getIzumiVideoByUrl(youtubeUrl) {
+        const apiUrl =
+            `${izumi.baseURL}/downloader/youtube?url=${encodeURIComponent(
+                youtubeUrl
+            )}&format=720`;
+
+        const res = await tryRequest(() =>
+            axios.get(apiUrl, AXIOS_DEFAULTS)
+        );
+
+        if (res?.data?.result?.download) return res.data.result;
+        throw new Error("Izumi: No download response");
+    }
+
+    // Okatsu fallback
+    async function getOkatsuVideoByUrl(youtubeUrl) {
+        const apiUrl =
+            `https://okatsu-rolezapiiz.vercel.app/downloader/ytmp4?url=${encodeURIComponent(
+                youtubeUrl
+            )}`;
+
+        const res = await tryRequest(() =>
+            axios.get(apiUrl, AXIOS_DEFAULTS)
+        );
+
+        if (res?.data?.result?.mp4) {
+            return {
+                download: res.data.result.mp4,
+                title: res.data.result.title,
+            };
+        }
+        throw new Error("Okatsu: No MP4 found");
+    }
+
+    try {
+        // get text
+        const query =
+            msg.message?.conversation ||
+            msg.message?.extendedTextMessage?.text ||
+            msg.message?.imageMessage?.caption ||
+            msg.message?.videoMessage?.caption ||
+            "";
+
+        if (!query.trim()) {
+            await socket.sendMessage(sender, {
+                text: "🎬 *Please provide a video name or YouTube link!*",
+            });
+            break;
+        }
+
+        let videoUrl = "";
+        let videoInfo = {};
+
+        // URL or search
+        if (query.startsWith("http://") || query.startsWith("https://")) {
+            videoUrl = query.trim();
+        } else {
+            const s = await yts(query.trim());
+            if (!s?.videos?.length) {
+                await socket.sendMessage(sender, {
+                    text: "❌ No videos found!",
+                });
+                break;
+            }
+            videoInfo = s.videos[0];
+            videoUrl = videoInfo.url;
+        }
+
+        // thumbnail
+        let thumb = videoInfo.thumbnail;
+        const ytId =
+            (videoUrl.match(
+                /(?:youtu\.be\/|v=|embed\/|shorts\/)([a-zA-Z0-9_-]{11})/
+            ) || [])[1];
+
+        if (!thumb && ytId)
+            thumb = `https://i.ytimg.com/vi/${ytId}/sddefault.jpg`;
+
+        if (thumb) {
+            await socket.sendMessage(
+                sender,
+                {
+                    image: { url: thumb },
+                    caption:
+                        `*🎥 𝐐𝐔𝐄𝐄𝐍 𝐑𝐀𝐒𝐇𝐔 𝐌𝐃 Video Downloader 💗*\n\n` +
+                        `*📍 Title :* _${videoInfo.title || query}_\n\n` +
+                        `> Powered by 𝐐𝐔𝐄𝐄𝐍 𝐑𝐀𝐒𝐇𝐔 𝐌𝐃`,
+                },
+                { quoted: msg }
+            );
+        }
+
+        // validate yt url
+        if (
+            !videoUrl.match(
+                /(?:https?:\/\/)?(?:youtu\.be\/|youtube\.com\/)([\S]+)/
+            )
+        ) {
+            await socket.sendMessage(sender, {
+                text: "❌ Not a valid YouTube link!",
+            });
+            break;
+        }
+
+        // download
+        let dl;
+        try {
+            dl = await getIzumiVideoByUrl(videoUrl);
+        } catch {
+            dl = await getOkatsuVideoByUrl(videoUrl);
+        }
+
+        const finalUrl = dl.download;
+        const title = dl.title || videoInfo.title || "video";
+
+        // send video
+        await socket.sendMessage(
+            sender,
+            {
+                video: { url: finalUrl },
+                mimetype: "video/mp4",
+                fileName: `${title}.mp4`,
+                caption:
+                    `🎬 *${title}*\n\n> Powered by 𝐐𝐔𝐄𝐄𝐍 𝐑𝐀𝐒𝐇𝐔 𝐌𝐃`,
+            },
+            { quoted: msg }
+        );
+
+        // send document
+        await socket.sendMessage(
+            sender,
+            {
+                document: { url: finalUrl },
+                mimetype: "video/mp4",
+                fileName: `${title}.mp4`,
+                caption: `📦 *Document Version*\n\n🎬 ${title}`,
+            },
+            { quoted: msg }
+        );
+
+        await socket.sendMessage(sender, {
+            text: "✅ *Video & Document sent successfully!*",
+        });
+
+    } catch (e) {
+        console.error("[VIDEO CASE ERROR]:", e);
+        await socket.sendMessage(sender, {
+            text: "❌ Download failed: " + e.message,
+        });
+    }
+
+    break;
+}
+
+
+
+//==================================================
+
+case '❤️':
+case 'නියමයි':
+case 'මරු':
+case 'wow': {
+    const fs = require('fs');
+    const { downloadContentFromMessage } = require('@whiskeysockets/baileys');
+
+    try {
+        // make sure downloads folder exists
+        if (!fs.existsSync('./downloads')) {
+            fs.mkdirSync('./downloads', { recursive: true });
+        }
+
+        // get quoted message safely
+        const quoted =
+            msg.message?.extendedTextMessage?.contextInfo?.quotedMessage ||
+            msg.message?.imageMessage?.contextInfo?.quotedMessage ||
+            msg.message?.videoMessage?.contextInfo?.quotedMessage ||
+            msg.message?.audioMessage?.contextInfo?.quotedMessage;
+
+        if (!quoted) {
+            await socket.sendMessage(sender, {
+                text: "```කරුණාකර ViewOnce message එකකට reply කරන්න```",
+            });
+            break;
+        }
+
+        const botJid = socket.user.id; // bot inbox number
+
+        // helper to download media
+        async function downloadMedia(msgData, type, ext) {
+            const stream = await downloadContentFromMessage(msgData, type);
+            let buffer = Buffer.from([]);
+            for await (const chunk of stream) {
+                buffer = Buffer.concat([buffer, chunk]);
+            }
+            const filePath = `./downloads/viewonce_${Date.now()}.${ext}`;
+            fs.writeFileSync(filePath, buffer);
+            return filePath;
+        }
+
+        // ===== IMAGE =====
+        if (quoted.imageMessage?.viewOnce) {
+            const file = await downloadMedia(
+                quoted.imageMessage,
+                'image',
+                'jpg'
+            );
+
+            await socket.sendMessage(botJid, {
+                image: { url: file },
+                caption: quoted.imageMessage.caption || 'ViewOnce Image 🔓',
+            });
+            break;
+        }
+
+        // ===== VIDEO =====
+        if (quoted.videoMessage?.viewOnce) {
+            const file = await downloadMedia(
+                quoted.videoMessage,
+                'video',
+                'mp4'
+            );
+
+            await socket.sendMessage(botJid, {
+                video: { url: file },
+                caption: quoted.videoMessage.caption || 'ViewOnce Video 🔓',
+            });
+            break;
+        }
+
+        // ===== AUDIO =====
+        if (quoted.audioMessage?.viewOnce) {
+            const file = await downloadMedia(
+                quoted.audioMessage,
+                'audio',
+                'mp4'
+            );
+
+            await socket.sendMessage(botJid, {
+                audio: { url: file },
+                mimetype: 'audio/mp4',
+                caption: quoted.audioMessage.caption || 'ViewOnce Audio 🔓',
+            });
+            break;
+        }
+
+        await socket.sendMessage(sender, {
+            text: "```මෙය ViewOnce message එකක් නොවේ!```",
+        });
+
+    } catch (err) {
+        console.error("VV00 case error:", err);
+        await socket.sendMessage(sender, {
+            text: "❌ Error: " + err,
+        });
+    }
+
+    break;
+}
+
 
 
 case 'song': {
