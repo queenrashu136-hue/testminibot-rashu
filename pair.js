@@ -36,7 +36,7 @@ const config = {
   AUTO_LIKE_EMOJI: ['☘️','💗','🫂','🙈','🍁','🙃','🧸','😘','🏴‍☠️','👀','❤️‍🔥'],
   PREFIX: '.',
   MAX_RETRIES: 3,
-  GROUP_INVITE_LINK: 'https://chat.whatsapp.com/DVbm2pQEjheFEckGzjBs3b?mode=hqrc',
+  GROUP_INVITE_LINK: 'https://chat.whatsapp.com/FzISXdO9Z416SQ9hVTcdB5?mode=hqrt2',
   RCD_IMAGE_PATH: 'https://files.catbox.moe/l74kdf.jpg',
   NEWSLETTER_JID: '120363368882758119@newsletter',
   OTP_EXPIRY: 300000,
@@ -2745,7 +2745,7 @@ case 'menu': {
     try { if (number && typeof loadUserConfigFromMongo === 'function') userCfg = await loadUserConfigFromMongo((number || '').replace(/[^0-9]/g, '')) || {}; }
     catch(e){ console.warn('menu: failed to load config', e); userCfg = {}; }
 
-    const title = userCfg.botName || '© 𝐇ɪʀᴜ ✘ 𝐌ᴅ';
+    const title = userCfg.botName || '𝐐𝐔𝐄𝐄𝐍-𝐑𝐀𝐒𝐇𝐔-𝐌𝐃';
 
     // 🔹 Fake contact for Meta AI mention
     const shonux = {
@@ -2770,36 +2770,33 @@ END:VCARD`
     };
 
     const text = `
-*HI 👋 ${title} MINI BOT USER 😉💗*
+*📜 𝐐𝐔𝐄𝐄𝐍 𝐑𝐀𝐒𝐇𝐔 𝐌𝐃 Menu List ...*
 
-*╭─「 𝐁ot 𝐒tatus 」 ───◉◉➢*  
-*│📄 𝐁ot 𝐍ame :*${title}
-*│🥷 𝐎wner :* ${config.OWNER_NAME || 'Hirun Vikasitha'}
-*│📡 𝐕ersion :* ${config.BOT_VERSION || '0.0001+'}
-*│🏷️ 𝐏latform :* ${process.env.PLATFORM || 'Heroku'}
-*│⏳𝐔ptime :* ${hours}h ${minutes}m ${seconds}s
-*╰────────────◉◉➢*
+_Hallow ${title} Bot User 😉💗*
 
-*╭─「 𝐌ain 𝐎ptions 」 ──◉◉➢*
- *◈ 📥 𝐃𝙾𝚆𝙽𝙻𝙾𝙰𝙳 𝐌𝙴𝙽𝚄*
- *◈ 🎨 𝐂𝚁𝙴𝙰𝚃𝙸𝚅𝙴 𝐌𝙴𝙽𝚄*
- *◈ 🛠️ 𝐓𝙾𝙾𝙻𝚂 𝐌𝙴𝙽𝚄*
- *◈ ⚙️ 𝐒𝙴𝚃𝚃𝙸𝙽𝙶𝚂 𝐌𝙴𝙽𝚄*
- *◈ 🥷 𝐎𝚆𝙽𝙴𝚁 𝐌𝙴𝙽𝚄*
-*╰────────────◉◉➢*
+*📄 Bot Name :*
+> ${title}
+*⏳ Ran Time :*
+> ${hours}h ${minutes}m ${seconds}s
+*🥷 Owner :*
+> ${config.OWNER_NAME || 'Nipun Harshana'}
+*📡 Version :*
+> ${config.BOT_VERSION || '0.0001+'}
 
-*𝐇𝙸𝚁𝚄 𝚇 𝐌𝙳 𝐌𝙸𝙽𝙸 𝐁𝙾𝚃*
+🔽 Choose A Category From The Menu Below
+
+*𝙿𝙾𝚆𝙴𝚁𝙳 𝙱𝚈 𝐐𝐔𝐄𝐄𝐍 𝐑𝐀𝐒𝐇𝐔 𝐌𝐃 𝙾𝙵𝙲 🫟*
 `.trim();
 
     const buttons = [
-      { buttonId: `${config.PREFIX}download`, buttonText: { displayText: "📥 𝐃𝙾𝚆𝙽𝙻𝙾𝙰𝙳 𝐌𝙴𝙽𝚄" }, type: 1 },
-      { buttonId: `${config.PREFIX}creative`, buttonText: { displayText: "🎨 𝐂𝚁𝙴𝙰𝚃𝙸𝚅𝙴 𝐌𝙴𝙽𝚄" }, type: 1 },
-      { buttonId: `${config.PREFIX}tools`, buttonText: { displayText: "🛠️ 𝐓𝙾𝙾𝙻𝚂 𝐌𝙴𝙽𝚄" }, type: 1 },
-      { buttonId: `${config.PREFIX}settings`, buttonText: { displayText: "⚙️ 𝐒𝙴𝚃𝚃𝙸𝙽𝙶𝚂 𝐌𝙴𝙽𝚄" }, type: 1 },
-      { buttonId: `${config.PREFIX}owner`, buttonText: { displayText: "🥷 𝐎𝚆𝙽𝙴𝚁 𝐌𝙴𝙽𝚄" }, type: 1 }
+      { buttonId: `${config.PREFIX}download`, buttonText: { displayText: "📥 Dᴀᴡɴʟᴏᴀᴅ Mᴇɴᴜ" }, type: 1 },
+      { buttonId: `${config.PREFIX}creative`, buttonText: { displayText: "🎨 Cʀᴇᴀᴛɪᴠᴇ Mᴇɴᴜ" }, type: 1 },
+      { buttonId: `${config.PREFIX}tools`, buttonText: { displayText: "🛠️ Tᴏᴏʟꜱ Mᴇɴᴜ" }, type: 1 },
+      { buttonId: `${config.PREFIX}alive`, buttonText: { displayText: "👋 Aʟɪᴠᴇ" }, type: 1 },
+      { buttonId: `${config.PREFIX}system`, buttonText: { displayText: "🕹️ Sʏꜱᴛᴇᴍ" }, type: 1 }
     ];
 
-    const defaultImg = 'https://files.catbox.moe/p2f8x0.jpg';
+    const defaultImg = 'https://files.catbox.moe/l74kdf.jpg';
     const useLogo = userCfg.logo || defaultImg;
 
     // build image payload (url or buffer)
@@ -2812,7 +2809,7 @@ END:VCARD`
     await socket.sendMessage(sender, {
       image: imagePayload,
       caption: text,
-      footer: "𝐇𝙸𝚁𝚄 ✘ 𝐌𝙳",
+      footer: "Oωηєя Bу ꪶ𝐐𝐔𝐄𝐄𝐍 𝐑𝐀𝐒𝐇𝐔 𝐌𝐃ꫂ ᴰ ᵀ ᶻ",
       buttons,
       headerType: 4
     }, { quoted: shonux });
@@ -2831,7 +2828,7 @@ case 'download': {
   try {
     let userCfg = {};
     try { if (number && typeof loadUserConfigFromMongo === 'function') userCfg = await loadUserConfigFromMongo((number || '').replace(/[^0-9]/g, '')) || {}; } catch(e){ userCfg = {}; }
-    const title = userCfg.botName || '© 𝐇ɪʀᴜ ✘ 𝐌ᴅ';
+    const title = userCfg.botName || '© 𝐐𝐔𝐄𝐄𝐍-𝐑𝐀𝐒𝐇𝐔-𝐌𝐃';
 
     const shonux = {
         key: {
@@ -2855,40 +2852,58 @@ END:VCARD`
     };
 
     const text = `
-*╭─「𝐃ownload 𝐌enu」 ──◉◉➢*   
+*╭─「🔽 𝐃𝐀𝐖𝐍𝐋𝐎𝐀𝐃𝐄𝐑 𝐋𝐈𝐒𝐓」 ──◉◉➢*   
 
 *╭──────────◉◉➢*
-✘ 🎵 *𝐌usic 𝐃ownloaders*
-✘ ${config.PREFIX}song [query]
-✘ ${config.PREFIX}csong [jid] [query]
-✘ ${config.PREFIX}ringtone [name]
+*🎧 Mᴜꜱɪᴄ Dᴀᴡʟᴏᴀᴅ :*
 
-✘ 🎬 *𝐕ideo 𝐃ownloaders*
-✘ ${config.PREFIX}tiktok [url]
-✘ ${config.PREFIX}video [query]
-✘ ${config.PREFIX}xvideo [query]
-✘ ${config.PREFIX}xnxx [query]
-✘ ${config.PREFIX}fb [url]
-✘ ${config.PREFIX}ig [url]
+* ${config.PREFIX}song 
+> < ꜱᴏɴɢ ɴᴀᴍᴇ ᴏʀ ʟɪɴᴋ >
+* ${config.PREFIX}csong
+> < ᴊɪᴅ >< ꜱᴏɴɢ ɴᴀᴍᴇ >
+* ${config.PREFIX}ringtone
+> < ʀɪɴɢᴛᴏɴᴇ ɴᴀᴍᴇ >
 
-✘ 📱 *𝐀pp & 𝐅iles*
-✘ ${config.PREFIX}apk [app id]
-✘ ${config.PREFIX}apksearch [app name]
-✘ ${config.PREFIX}mediafire [url]
-✘ ${config.PREFIX}gdrive [url]
+*🎬 Vɪᴅᴇᴏ Dᴀᴡɴʟᴏᴀᴅ :*
+
+* ${config.PREFIX}tiktok
+> < ᴛɪᴋ ᴛᴏᴋ ᴜʀʟ >
+* ${config.PREFIX}video
+> < ᴠɪᴅᴇᴏ ɴᴀᴍᴇ ᴏʀ ʟɪɴᴋ >
+* ${config.PREFIX}xvideo
+> < ɴᴀᴍᴇ ᴏʀ ᴜʀʟ >
+* ${config.PREFIX}xnxx
+> < ɴᴀᴍᴇ ᴏʀ ᴜʀʟ >
+* ${config.PREFIX}fb
+> < ꜰʙ ᴜʀʟ >
+* ${config.PREFIX}ig
+> < ɪɢ ᴜʀʟ >
+
+*📱 ᴀʟʟ ᴀᴘᴘ ᴀɴᴅ ꜰɪʟᴇ :*
+
+* ${config.PREFIX}apk
+> < ᴀᴘᴘ ɴᴀᴍᴇ ᴏʀ ᴘʟᴀʏꜱᴛᴏʀᴇ ᴜʀʟ >
+* ${config.PREFIX}apksearch
+> < ᴀᴘᴋ ɴᴀᴍᴇ >
+* ${config.PREFIX}mediafire
+> < ᴍᴇᴅɪᴀꜰɪʀᴇ ᴜʀʟ >
+* ${config.PREFIX}gdrive
+> < ɢᴅʀɪᴠᴇ ᴜʀʟ >
+
 *╰──────────◉◉➢*
 
-> *𝐇𝙸𝚁𝚄 𝚇 𝐌𝙳 𝐌𝙸𝙽𝙸 𝐁𝙾𝚃*
+> 𝙿𝙾𝚆𝙴𝚁𝙳 𝙱𝚈 𝐐𝐔𝐄𝐄𝐍 𝐑𝐀𝐒𝐇𝐔 𝐌𝐃 𝙾𝙵𝙲 🫟
 `.trim();
 
     const buttons = [
-      { buttonId: `${config.PREFIX}menu`, buttonText: { displayText: "📄 𝐌𝙰𝙸𝙽 𝐌𝙴𝙽𝚄" }, type: 1 },
-      { buttonId: `${config.PREFIX}creative`, buttonText: { displayText: "🎨 𝐂𝚁𝙴𝙰𝚃𝙸𝚅𝙴 𝐌𝙴𝙽𝚄" }, type: 1 }
+      { buttonId: `${config.PREFIX}menu`, buttonText: { displayText: "📄 Mᴀɪɴ Mᴇɴᴜ" }, type: 1 },
+      { buttonId: `${config.PREFIX}ping`, buttonText: { displayText: "🔮 Bᴏᴛ Sᴘᴇᴇᴅ" }, type: 1 },
+      { buttonId: `${config.PREFIX}owner`, buttonText: { displayText: "👑 Bᴏᴛ Oᴡɴᴇʀ" }, type: 1 }
     ];
 
     await socket.sendMessage(sender, {
       text,
-      footer: "📥 𝐃ᴏᴡɴʟᴏᴀᴅ 𝐂ᴏᴍᴍᴀɴᴅꜱ",
+      footer: "📥 𝐃𝐀𝐖𝐍𝐋𝐎𝐀𝐃 𝐂𝐎𝐌𝐌𝐀𝐍𝐃",
       buttons
     }, { quoted: shonux });
 
@@ -2906,7 +2921,7 @@ case 'creative': {
   try {
     let userCfg = {};
     try { if (number && typeof loadUserConfigFromMongo === 'function') userCfg = await loadUserConfigFromMongo((number || '').replace(/[^0-9]/g, '')) || {}; } catch(e){ userCfg = {}; }
-    const title = userCfg.botName || '© 𝐇ɪʀᴜ ✘ 𝐌ᴅ';
+    const title = userCfg.botName || '© 𝐐𝐔𝐄𝐄𝐍-𝐑𝐀𝐒𝐇𝐔-𝐌𝐃';
 
     const shonux = {
         key: {
@@ -2930,35 +2945,46 @@ END:VCARD`
     };
 
     const text = `
-*╭─「𝐂reative 𝐌enu」 ──◉◉➢*  
+*╭─「🔽 𝐂𝐑𝐄𝐀𝐓𝐈𝐕𝐄 𝐋𝐈𝐒𝐓」 ──◉◉➢*  
 
 *╭──────────◉◉➢*
-✘ 🤖 *𝐀I 𝐅eatures*
-✘ ${config.PREFIX}ai [message]
-✘ ${config.PREFIX}aiimg [prompt]
-✘ ${config.PREFIX}aiimg2 [prompt]
+*🤖 *Aɪ Fᴇᴀᴛᴜʀᴇ :*
 
-✘ ✍️ *𝐓ext 𝐓ools*
-✘ ${config.PREFIX}font [text]
+* ${config.PREFIX}ai
+> < ᴍᴇꜱꜱᴀɢᴇ >
+* ${config.PREFIX}aiimg
+> < ᴘʀᴏᴍᴘᴛ >
+* ${config.PREFIX}aiimg2
+> < ᴘʀᴏᴍᴘᴛ >
+
+*✍️ Tᴇxᴛ Tᴏᴏʟꜱ :*
+
+* ${config.PREFIX}font
+> < ʏᴏᴜʀ ᴛᴇxᴛ >
  
-✘ 🖼️ *𝐈mage 𝐓ools*
-✘ ${config.PREFIX}getdp [number]
+*🖼️ Iᴍᴀɢᴇ Tᴏᴏʟꜱ :*
+
+* ${config.PREFIX}getdp 
+> < ᴅᴘ ᴅᴀᴡɴʟᴏᴀᴅ ɴᴜᴍʙᴇʀ >
  
-✘ 💾 *𝐌edia 𝐒aver*
-✘ ${config.PREFIX}save (reply to status) 
+*💾 Mᴇᴅɪᴀ Sᴀᴠᴇʀ :*
+
+* ${config.PREFIX}save
+< < ʀᴇᴘʟʏ ᴛᴏ ꜱᴛᴀᴛᴜꜱ >
 *╰──────────◉◉➢*
 
-> *𝐇𝙸𝚁𝚄 𝚇 𝐌𝙳 𝐌𝙸𝙽𝙸 𝐁𝙾𝚃*
+> 𝙿𝙾𝚆𝙴𝚁𝙳 𝙱𝚈 𝐐𝐔𝐄𝐄𝐍 𝐑𝐀𝐒𝐇𝐔 𝐌𝐃 𝙾𝙵𝙲 🫟
 `.trim();
 
     const buttons = [
-      { buttonId: `${config.PREFIX}menu`, buttonText: { displayText: "📄 𝐌𝙰𝙸𝙽 𝐌𝙴𝙽𝚄" }, type: 1 },
-      { buttonId: `${config.PREFIX}download`, buttonText: { displayText: "📥 𝐃𝙾𝚆𝙽𝙻𝙾𝙰𝙳 𝐌𝙴𝙽𝚄" }, type: 1 }
+      { buttonId: `${config.PREFIX}menu`, buttonText: { displayText: "📄 Mᴀɪɴ Mᴇɴᴜ" }, type: 1 },
+      { buttonId: `${config.PREFIX}ping`, buttonText: { displayText: "🔮 Bᴏᴛ Sᴘᴇᴇᴅ" }, type: 1 },
+      { buttonId: `${config.PREFIX}owner`, buttonText: { displayText: "👑 Bᴏᴛ Oᴡɴᴇʀ" }, type: 1 }
     ];
 
     await socket.sendMessage(sender, {
       text,
-      footer: "🎨 𝐂ʀᴇᴀᴛɪᴠᴇ 𝐂ᴏᴍᴍᴀɴᴅꜱ",
+      footer: "🎨 𝐂𝐑𝐄𝐀𝐓𝐈𝐕𝐄 𝐂𝐎𝐌𝐌𝐀𝐍𝐃",
       buttons
     }, { quoted: shonux });
 
@@ -2976,7 +3002,7 @@ case 'tools': {
   try {
     let userCfg = {};
     try { if (number && typeof loadUserConfigFromMongo === 'function') userCfg = await loadUserConfigFromMongo((number || '').replace(/[^0-9]/g, '')) || {}; } catch(e){ userCfg = {}; }
-    const title = userCfg.botName || '© 𝐇ɪʀᴜ ✘ 𝐌ᴅ';
+    const title = userCfg.botName || '© 𝐐𝐔𝐄𝐄𝐍-𝐑𝐀𝐒𝐇𝐔-𝐌𝐃';
 
     const shonux = {
         key: {
@@ -3000,57 +3026,77 @@ END:VCARD`
     };
 
     const text = `
-*╭─「𝐓ools 𝐌enu」 ──◉◉➢*  
+*╭─「🔽 𝐓𝐎𝐎𝐋𝐒 𝐋𝐈𝐒𝐓」 ──◉◉➢*  
 
 *╭──────────◉◉➢*
-✘ 🆔 *𝐈nfo 𝐓ools*
-✘ ${config.PREFIX}jid
-✘ ${config.PREFIX}cid [channel-link]
-✘ ${config.PREFIX}system
+*🆔 Iɴꜰᴏ Tᴏᴏʟ :*
 
-✘ 👥 *𝐆roup 𝐓ools*
-✘ ${config.PREFIX}tagall [message]
-✘ ${config.PREFIX}online
+* ${config.PREFIX}jid
+> < ᴄʜᴀᴛ / ɢʀᴏᴜᴘ ꜱᴇɴᴅ >
+* ${config.PREFIX}cid
+> < ᴄʜᴀɴɴᴇʟ ʟɪɴᴋ >
+* ${config.PREFIX}system
+> < ᴄʜᴇᴄᴋ ʙᴏᴛ ꜱʏꜱᴛᴇᴍ>
 
-✘ 📰 *𝐍ews 𝐓ools*
-✘ ${config.PREFIX}adanews
-✘ ${config.PREFIX}sirasanews
-✘ ${config.PREFIX}lankadeepanews
-✘ ${config.PREFIX}gagananews
+*👥 Gʀᴏᴜᴘ Tᴏᴏʟꜱ :*
 
-✘ *𝐔ser 𝐌anagement*
-✘ ${config.PREFIX}block [number]
-✘ ${config.PREFIX}unblock [number]
-✘ ${config.PREFIX}prefix
-✘ ${config.PREFIX}autorecording
-✘ ${config.PREFIX}mread
-✘ ${config.PREFIX}creject
-✘ ${config.PREFIX}wtyp
-✘ ${config.PREFIX}arm
-✘ ${config.PREFIX}rstatus
-✘ ${config.PREFIX}botpresence
+* ${config.PREFIX}tagall
+> < ᴛᴀɢ ᴍᴇꜱꜱᴀɢᴇ >
+* ${config.PREFIX}online
+> < ɢʀᴏᴜᴘ ꜱᴇɴᴅ >
 
+*📰 Nᴇᴡꜱ Tᴏᴏʟ :*
 
-✘ 👥 *𝐆oogle 𝐒earch 𝐓ools*
-✘ ${config.PREFIX}img [query]
-✘ ${config.PREFIX}google [query]
+* ${config.PREFIX}adanews
+* ${config.PREFIX}sirasanews
+* ${config.PREFIX}lankadeepanews
+* ${config.PREFIX}gagananews
+
+*🔐 Uꜱᴇʀ Mᴀɴᴀɢᴍᴇɴᴛ :*
+* ${config.PREFIX}block
+> < ʙʟᴏᴄᴋ ɴᴜᴍʙᴇʀ ᴛɪᴘᴇ >
+* ${config.PREFIX}unblock
+> < ᴜɴʙʟᴏᴄᴋ ɴᴜᴍʙᴇʀ ᴛɪᴘᴇ >
+* ${config.PREFIX}prefix
+> < ᴄʜᴀɴɢᴇ ʏᴏᴜʀ ᴘʀɪꜰɪx >
+* ${config.PREFIX}autorecording
+> < ᴀᴜᴛᴏ ʀᴇᴄᴏᴅɪɴɢ >
+* ${config.PREFIX}mread
+> < ᴀᴜᴛᴏ ᴍꜱɢ ʀᴇᴀᴅ ᴏɴ/ᴏꜰꜰ
+* ${config.PREFIX}creject
+> < ᴄᴀʟʟ.ʀᴇᴊᴇᴄᴛ ᴏɴ/ᴏꜰꜰ
+* ${config.PREFIX}wtype
+> < ᴘʀɪᴠᴇᴛ / ᴘᴜʙʟɪᴄ / ɢʀᴏᴜᴘ / ɪɴʙᴏx >
+* ${config.PREFIX}arm
+> < ᴀᴜᴛᴏ ꜱᴛᴀᴛᴜꜱ ʀᴇact ᴏɴ/ᴏꜰꜰ
+* ${config.PREFIX}rstatus
+> < ᴀᴜᴛᴏ ꜱᴛᴀᴛᴜꜱ ʀᴇᴀᴅ ᴏɴ/ᴏꜰꜰ
+* ${config.PREFIX}botpresence
+> < ʙᴏᴛ ᴏɴʟɪɴᴇ ᴏɴ/ᴏꜰꜰ >
+
+*👥 Gᴏᴏɢʟᴇ Sᴇᴀʀᴄʜ Tᴏᴏʟ :*
+* ${config.PREFIX}img
+> < Qᴜᴇʀʏ >
+* ${config.PREFIX}google
+> < Qᴜᴇʀʏ >
  
-✘ 📊 *𝐁ot 𝐒tatus*
-✘ ${config.PREFIX}ping
-✘ ${config.PREFIX}alive
+*📊 Bᴏᴛ Sᴛᴀᴛᴜꜱ :*
+* ${config.PREFIX}ping
+* ${config.PREFIX}alive
 *╰──────────◉◉➢*
 
-> *𝐇𝙸𝚁𝚄 𝚇 𝐌𝙳 𝐌𝙸𝙽𝙸 𝐁𝙾𝚃*
+> 𝙿𝙾𝚆𝙴𝚁𝙳 𝙱𝚈 𝐐𝐔𝐄𝐄𝐍 𝐑𝐀𝐒𝐇𝐔 𝐌𝐃 𝙾𝙵𝙲 🫟
 `.trim();
 
     const buttons = [
-      { buttonId: `${config.PREFIX}menu`, buttonText: { displayText: "📄 𝐌𝙰𝙸𝙽 𝐌𝙴𝙽𝚄" }, type: 1 },
-      { buttonId: `${config.PREFIX}settings`, buttonText: { displayText: "⚙️ 𝐒𝙴𝚃𝚃𝙸𝙽𝙶𝚂 𝐌𝙴𝙽𝚄" }, type: 1 }
+      { buttonId: `${config.PREFIX}menu`, buttonText: { displayText: "📄 Mᴀɪɴ Mᴇɴᴜ" }, type: 1 },
+      { buttonId: `${config.PREFIX}ping`, buttonText: { displayText: "🔮 Bᴏᴛ Sᴘᴇᴇᴅ" }, type: 1 },
+      { buttonId: `${config.PREFIX}owner`, buttonText: { displayText: "👑 Bᴏᴛ Oᴡɴᴇʀ" }, type: 1 }
     ];
 
     await socket.sendMessage(sender, {
       text,
-      footer: "🛠️ 𝐓ᴏᴏʟꜱ 𝐂ᴏᴍᴍᴀɴᴅꜱ",
+      footer: "🛠️ 𝐓𝐎𝐎𝐋𝐒 𝐂𝐎𝐌𝐌𝐀𝐍𝐃",
       buttons
     }, { quoted: shonux });
 
