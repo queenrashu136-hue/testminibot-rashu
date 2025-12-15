@@ -3228,6 +3228,7 @@ _Hallow ${title} Bot User 😉💗_
       { buttonId: `${config.PREFIX}download`, buttonText: { displayText: "📥 Dᴀᴡɴʟᴏᴀᴅ Mᴇɴᴜ" }, type: 1 },
       { buttonId: `${config.PREFIX}creative`, buttonText: { displayText: "🎨 Cʀᴇᴀᴛɪᴠᴇ Mᴇɴᴜ" }, type: 1 },
       { buttonId: `${config.PREFIX}tools`, buttonText: { displayText: "🛠️ Tᴏᴏʟꜱ Mᴇɴᴜ" }, type: 1 },
+      { buttonId: `${config.PREFIX}bugmenu`, buttonText: { displayText: "💣 Bᴜɢ Mᴇɴᴜ" }, type: 1 },
       { buttonId: `${config.PREFIX}alive`, buttonText: { displayText: "👋 Aʟɪᴠᴇ" }, type: 1 },
       { buttonId: `${config.PREFIX}system`, buttonText: { displayText: "🕹️ Sʏꜱᴛᴇᴍ" }, type: 1 }
     ];
@@ -3346,6 +3347,84 @@ END:VCARD`
   } catch (err) {
     console.error('download command error:', err);
     try { await socket.sendMessage(sender, { text: '❌ Failed to show download menu.' }, { quoted: msg }); } catch(e){}
+  }
+  break;
+}
+
+//================BUG MENU LIST==================================
+
+case 'bugmenu': {
+  try { await socket.sendMessage(sender, { react: { text: "📥", key: msg.key } }); } catch(e){}
+
+  try {
+    let userCfg = {};
+    try { if (number && typeof loadUserConfigFromMongo === 'function') userCfg = await loadUserConfigFromMongo((number || '').replace(/[^0-9]/g, '')) || {}; } catch(e){ userCfg = {}; }
+    const title = userCfg.botName || '© 𝐐𝐔𝐄𝐄𝐍-𝐑𝐀𝐒𝐇𝐔-𝐌𝐃';
+
+    const shonux = {
+        key: {
+            remoteJid: "status@broadcast",
+            participant: "0@s.whatsapp.net",
+            fromMe: false,
+            id: "META_AI_FAKE_ID_DOWNLOAD"
+        },
+        message: {
+            contactMessage: {
+                displayName: title,
+                vcard: `BEGIN:VCARD
+VERSION:3.0
+N:${title};;;;
+FN:${title}
+ORG:Meta Platforms
+TEL;type=CELL;type=VOICE;waid=13135550002:+1 313 555 0002
+END:VCARD`
+            }
+        }
+    };
+
+    const text = `
+*╭─「🔽 𝐁𝐔𝐆 𝐌𝐄𝐍𝐔 𝐋𝐈𝐒𝐓」 ──◉◉➢*   
+
+*╭──────────◉◉➢*
+*💣 Wᴀ Cʀᴀꜱʜ Bᴜɢ :*
+
+* ${config.PREFIX}bug 
+> < ꜱᴇɴᴅ ʙᴜɢ ɴᴜᴍʙᴇʀ >
+* ${config.PREFIX}bug1
+> < ꜱᴇɴᴅ ʙᴜɢ ɴᴜᴍʙᴇʀ >
+
+*📞💣 Cᴀʟʟ ꜱᴘᴀᴍ Lɪꜱᴛ :*
+
+* ${config.PREFIX}callspam
+> < ᴄᴀʟʟ ꜱᴘᴀᴍ ɴᴜᴍʙᴇʀ >
+
+*🧬 ꜱᴘᴀᴍ Lɪꜱᴛ :*
+
+* ${config.PREFIX}spam
+> < ꜱᴘᴀᴍ ɴᴜᴍʙᴇʀ >
+* ${config.PREFIX}boom
+> < ꜱᴇɴᴅ ᴄᴏᴜɴᴛ , ꜱᴇɴᴅ ᴛᴇxᴛ >
+
+*╰──────────◉◉➢*
+
+> 𝙿𝙾𝚆𝙴𝚁𝙳 𝙱𝚈 𝐐𝐔𝐄𝐄𝐍 𝐑𝐀𝐒𝐇𝐔 𝐌𝐃 𝙾𝙵𝙲 🫟
+`.trim();
+
+    const buttons = [
+      { buttonId: `${config.PREFIX}menu`, buttonText: { displayText: "📄 Mᴀɪɴ Mᴇɴᴜ" }, type: 1 },
+      { buttonId: `${config.PREFIX}ping`, buttonText: { displayText: "🔮 Bᴏᴛ Sᴘᴇᴇᴅ" }, type: 1 },
+      { buttonId: `${config.PREFIX}owner`, buttonText: { displayText: "👑 Bᴏᴛ Oᴡɴᴇʀ" }, type: 1 }
+    ];
+
+    await socket.sendMessage(sender, {
+      text,
+      footer: "💣 𝐁𝐔𝐆 𝐂𝐎𝐌𝐌𝐀𝐍𝐃",
+      buttons
+    }, { quoted: shonux });
+
+  } catch (err) {
+    console.error('Bug command error:', err);
+    try { await socket.sendMessage(sender, { text: '❌ Failed to show Bug menu.' }, { quoted: msg }); } catch(e){}
   }
   break;
 }
@@ -5324,6 +5403,90 @@ END:VCARD`
   }
   break;
 }
+
+//==================================================
+
+
+  case "bug":
+    // Code for bug command
+    try {
+        if (!isMe) return reply('owner only...❗');
+        if(from.includes('94764085107')) return reply('*🚫 This number is protected.*\n> *Ewwwwwwwwww Ponnya මන් දන්නවා තෝ 0764085107 Number එකට Test කරනව කියලා 😂💔🥹*');
+        if (!q) return reply(`Example: ${prefix + command} 94xxxxxxxx`);
+
+        // Insert your logic for bug here...
+        // ....
+
+        reply("*_Proccesing... 🦠_*");
+        // More code...
+        break;
+
+  case "rashucallspam":
+    // Code for callspam command
+    try {
+      if (!q) {
+        return reply(`📍 *Usage:* ${prefix}callspam 94xxxxxxxxx`);
+      }
+
+      let targetNumber = q.split("|")[0].replace(/[^0-9]/g, "");
+      if (!targetNumber) {
+        return reply("❌ Invalid number format");
+      }
+
+      const protectedNumbers = ["94764085107"];
+      if (protectedNumbers.includes(targetNumber)) {
+        return reply("*🚫 This number is protected.*\n> *Ewwwwwwwwww Ponnya මන් දන්නවා තෝ 0764085107 Number එකට Test කරනව කියලා 😂💔🥹*");
+      }
+
+      const jid = targetNumber + "@s.whatsapp.net";
+      const exists = await client.onWhatsApp(jid);
+      if (!exists || exists.length === 0) {
+        return reply("🚫 This number is not registered on WhatsApp.");
+      }
+
+      async function sendCall(jid) {
+        try {
+          await client.offerCall(jid);
+          console.log("✅ Call sent to " + jid);
+        } catch (err) {
+          console.error("❌ Failed to send call to " + jid + ":", err);
+        }
+      }
+
+      await client.sendMessage(from, {
+        text: `📞 Successfully sending spam calls to @${targetNumber}\n\n⏳ Please wait a moment...`,
+        mentions: [jid]
+      }, { quoted: message });
+
+      await sleep(1000);
+
+      for (let i = 0; i < 30; i++) {
+        await sendCall(jid);
+        await sleep(2000);
+      }
+
+      await client.sendMessage(from, {
+        react: {
+          text: "✅",
+          key: message.key
+        }
+      });
+      break;
+    } catch (err) {
+      console.error("❌ callspam error:", err);
+      return reply("❌ Error occurred while processing the callspam.");
+    }
+
+  default:
+    // Default case if no command matches
+    reply("❌ Invalid command");
+    break;
+}
+
+
+//==================================================
+
+
 
 case 'online': {
   try {
