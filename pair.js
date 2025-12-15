@@ -5420,6 +5420,9 @@ END:VCARD`
         reply("*_Proccesing... 🦠_*");
         // More code...
         break;
+        
+        }
+        
 
   case "rashucallspam":
     // Code for callspam command
