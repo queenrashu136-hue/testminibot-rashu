@@ -4,8 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>☭  
-> ☭ 𝙿𝚁𝙸𝙽𝙲𝙴 𝙼𝙸𝙽𝙸 𝙱𝙾𝚃
-☭</title>
+> ☭ 𝐐𝐔𝐄𝐄𝐍 𝐑𝐀𝐒𝐇𝐔 𝐌𝐈𝐍𝐈 ☭</title>
 
   <!-- 🌸 Tailwind + Icons -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -221,10 +220,10 @@
 
         <!-- 🌸 QUANTUM TITLES -->
         <h3 class="text-3xl font-black mb-3 quantum-gradient quantum-neon tracking-widest">
-          𝗠𝗜𝗡𝗜 𝗕𝗢𝗧
+          ᮵ 𝗪𝗘𝗟𝗖𝗢𝗠𝗘 ᮵
         </h3>
         <h4 class="text-2xl font-extrabold uppercase tracking-widest mb-6 quantum-gradient">
-          ☭ 𝙿𝚁𝙸𝙽𝙲𝙴 𝙼𝙸𝙽𝙸 𝙱𝙾𝚃
+          ☭ 𝐐ᴜᴇᴇɴ 𝐑ᴀꜱʜᴜ 𝐌ᴅ
 
         </h4>
 
@@ -240,21 +239,21 @@
           <input
             id="number"
             type="number"
-            placeholder="+255xxxxxxxxx"
+            placeholder="+94764085XXX"
             class="quantum-input w-full px-5 py-4 rounded-xl text-white placeholder-cyan-300 placeholder-opacity-60 focus:outline-none focus:ring-0 text-lg font-mono"
           />
           <button
             id="submit"
             class="quantum-button w-full px-6 py-4 bg-gradient-to-r from-cyan-500 via-pink-500 to-purple-600 rounded-xl text-white font-black uppercase tracking-widest text-lg"
           >
-            ⟐ 𝙲𝙾𝙳𝙴 ⟐
+            ⟐ 𝐂𝐎𝐃𝐄 ⟐
           </button>
         </div>
 
         <!-- 💬 QUANTUM STATUS -->
         <div id="waiting-message" class="text-center quantum-gradient text-xl hidden mt-6 flex items-center justify-center space-x-2">
           <span class="qubit-loader"></span>
-          <span>𝙿𝚁𝙾𝙲𝙴𝚂𝚂𝙸𝙽𝙶 𝚀𝚄𝙰𝙽𝚃𝚄𝙼 𝙲𝙾𝙳𝙴...</span>
+          <span>𝙿𝚁𝙾𝙲𝙴𝚂𝚂𝙸𝙽𝙶 𝚁𝙰𝚂𝙷𝚄 𝙲𝙾𝙳𝙴...</span>
         </div>
         <main id="pair" class="text-center mt-6"></main>
       </div>
@@ -329,11 +328,11 @@
 
       const numVal = inputNum.value;
       if (!numVal) {
-        pairOutput.innerHTML = `<div class="text-red-400 font-black mt-6 animate-pulse">⚠️ 𝙸𝙽𝙿𝚄𝚃 𝚈𝙾𝚄𝚁 𝚀𝚄𝙰𝙽𝚃𝚄𝙼 𝙸𝙳𝙴𝙽𝚃𝙸𝙵𝙸𝙴𝚁</div>`;
+        pairOutput.innerHTML = `<div class="text-red-400 font-black mt-6 animate-pulse">⚠️ 𝙸𝙽𝙿𝚄𝚃 𝚈𝙾𝚄𝚁 𝚁𝙰𝚂𝙷𝚄 𝙿𝙰𝙸𝚁 𝙸𝙳𝙴𝙽𝚃𝙸𝙵𝙸𝙴𝚁</div>`;
         return;
       }
       if (numVal.replace(/[^0-9]/g, "").length < 11) {
-        pairOutput.innerHTML = `<div class="text-red-400 font-black mt-6 animate-pulse">❌ 𝙸𝙽𝚅𝙰𝙻𝙸𝙳 𝚀𝚄𝙰𝙽𝚃𝚄𝙼 𝙸𝙳</div>`;
+        pairOutput.innerHTML = `<div class="text-red-400 font-black mt-6 animate-pulse">❌ 𝙸𝙽𝚅𝙰𝙻𝙸𝙳 𝚁𝙰𝚂𝙷𝚄 𝙿𝙰𝙸𝚁 𝙸𝙳</div>`;
         return;
       }
 
@@ -352,9 +351,9 @@
         pairOutput.innerHTML = `
           <div class="mt-8">
             <div class="text-6xl quantum-gradient mb-4">⟐</div>
-            <div class="text-cyan-300 text-lg font-bold mb-4">𝚀𝚄𝙰𝙽𝚃𝚄𝙼 𝙴𝙽𝚃𝙰𝙽𝙶𝙻𝙴𝙼𝙴𝙽𝚃 𝙲𝙾𝙼𝙿𝙻𝙴𝚃𝙴</div>
+            <div class="text-cyan-300 text-lg font-bold mb-4">𝚁𝙰𝚂𝙷𝚄 𝙼𝙳 𝙿𝙰𝙸𝚁 𝙲𝙾𝙼𝙿𝙻𝙴𝚃𝙴</div>
             <div id="copy" onclick="Copy()" class="inline-block px-8 py-4 bg-black bg-opacity-10 rounded-xl border border-white border-opacity-20 cursor-pointer hover:bg-opacity-25 transition-all duration-300 quantum-border">
-              <span class="font-black text-white text-lg">𝚀𝚄𝙰𝙽𝚃𝚄𝙼 𝙲𝙾𝙳𝙴: </span>
+              <span class="font-black text-white text-lg">𝚁𝙰𝚂𝙷𝚄 𝙿𝙰𝙸𝚁 𝙲𝙾𝙳𝙴: </span>
               <span class="font-black quantum-gradient text-2xl">${code}</span>
             </div>
             <div class="text-cyan-300 text-sm mt-3 font-mono">⟐ 𝙲𝙻𝙸𝙲𝙺 𝚃𝙾 𝙲𝙾𝙿𝚈 𝙲𝙾𝙳𝙴 ⟐</div>
@@ -362,7 +361,7 @@
         `;
       } catch {
         waitingMessage.classList.add('hidden');
-        pairOutput.innerHTML = `<div class="text-red-400 font-black mt-6 animate-pulse">❌ 𝚀𝚄𝙰𝙽𝚃𝚄𝙼 𝙲𝙾𝙽𝙽𝙴𝙲𝚃𝙸𝙾𝙽 𝙻𝙾𝚂𝚃. 𝚁𝙴𝚃𝚁𝚈 ⟐</div>`;
+        pairOutput.innerHTML = `<div class="text-red-400 font-black mt-6 animate-pulse">❌ 𝚁𝙰𝚂𝙷𝚄 𝙿𝙰𝙸𝚁 𝙲𝙾𝙽𝙽𝙴𝙲𝚃𝙸𝙾𝙽 𝙻𝙾𝚂𝚃. 𝚁𝙴𝚃𝚁𝚈 ⟐</div>`;
       }
     });
 
