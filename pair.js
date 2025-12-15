@@ -2461,6 +2461,31 @@ case 'xvselect': {
 }
 break;
 
+case 'restart': {
+    try {
+        const { exec } = require("child_process");
+        const { sleep } = require('../lib/functions');
+
+        // Bot owner number (jid → number)
+        const botOwner = conn.user.id.split(":")[0];
+
+        if (senderNumber !== botOwner) {
+            return reply(
+                "Only the bot owner can use this command.\n" +
+                "> *තමුසෙ කවුද යකූ මාව Restart කරන්න 😧*"
+            );
+        }
+
+        reply("*𝐐𝐔𝐄𝐄𝐍 𝐑𝐀𝐒𝐇𝐔 𝐌𝐃 Restarting 🪄🚫...*");
+        await sleep(1500);
+
+        exec("pm2 restart all");
+    } catch (e) {
+        console.error(e);
+        reply(`${e}`);
+    }
+}
+break;
 
 case 'දාපන්':
 case 'ඔන':
