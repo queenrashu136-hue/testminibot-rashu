@@ -637,155 +637,352 @@ END:VCARD`
 // ==========================================
 // 1. MAIN MENU COMMAND (බටන් පෙන්නන කොටස)
 // ==========================================
-case 'video1': {
-  const axios = require('axios');
-  const videoUrl = args[0] || q;
 
-  if (!videoUrl) {
-    await socket.sendMessage(sender, { text: '*Please provide a YouTube URL!*' }, { quoted: dtzminibot });
+
+case 'song': {
+    const yts = require("yt-search");
+    const axios = require("axios");
+
+    // Axios defaults
+    const AXIOS_DEFAULTS = {
+        timeout: 60000,
+        headers: {
+            "User-Agent":
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            Accept: "application/json, text/plain, */*",
+        },
+    };
+
+    // retry helper
+    async function tryRequest(getter, attempts = 3) {
+        let lastErr;
+        for (let i = 1; i <= attempts; i++) {
+            try {
+                return await getter();
+            } catch (e) {
+                lastErr = e;
+                if (i < attempts) await new Promise(r => setTimeout(r, 1000 * i));
+            }
+        }
+        throw lastErr;
+    }
+
+    // APIs
+    async function izumiByUrl(url) {
+        const api = `https://izumiiiiiiii.dpdns.org/downloader/youtube?url=${encodeURIComponent(url)}&format=mp3`;
+        const res = await tryRequest(() => axios.get(api, AXIOS_DEFAULTS));
+        if (res?.data?.result?.download) return res.data.result;
+        throw new Error("Izumi URL failed");
+    }
+
+    async function izumiByQuery(q) {
+        const api = `https://izumiiiiiiii.dpdns.org/downloader/youtube-play?query=${encodeURIComponent(q)}`;
+        const res = await tryRequest(() => axios.get(api, AXIOS_DEFAULTS));
+        if (res?.data?.result?.download) return res.data.result;
+        throw new Error("Izumi Query failed");
+    }
+
+    async function okatsu(url) {
+        const api = `https://okatsu-rolezapiiz.vercel.app/downloader/ytmp3?url=${encodeURIComponent(url)}`;
+        const res = await tryRequest(() => axios.get(api, AXIOS_DEFAULTS));
+        if (res?.data?.dl) {
+            return {
+                download: res.data.dl,
+                title: res.data.title,
+                thumbnail: res.data.thumb,
+            };
+        }
+        throw new Error("Okatsu failed");
+    }
+
+    try {
+        // read text
+        const q =
+            msg.message?.conversation ||
+            msg.message?.extendedTextMessage?.text ||
+            msg.message?.imageMessage?.caption ||
+            msg.message?.videoMessage?.caption ||
+            "";
+
+        if (!q.trim()) {
+            await socket.sendMessage(sender, {
+                text: "🎵 *Please provide a song name or YouTube link!*",
+            });
+            break;
+        }
+
+        // detect url or search
+        let video;
+        if (q.includes("youtu.be") || q.includes("youtube.com")) {
+            video = { url: q };
+        } else {
+            const s = await yts(q);
+            if (!s?.videos?.length) {
+                await socket.sendMessage(sender, { text: "❌ No results found!" });
+                break;
+            }
+            video = s.videos[0];
+        }
+
+        // info card
+        await socket.sendMessage(
+            sender,
+            {
+                image: { url: video.thumbnail },
+                caption:
+                    `*🎧 𝐐𝐔𝐄𝐄𝐍 𝐑𝐀𝐒𝐇𝐔 𝐌𝐃 Song Downloader 💗*\n\n` +
+                    `*📍 Title:* _${video.title}_\n` +
+                    `*📍 Duration:* _${video.timestamp}_\n\n` +
+                    `> *ᴘᴏᴡᴇʀᴅ ʙʏ 𝐐ᴜᴇᴇɴ 𝐑ᴀꜱʜᴜ 𝐌ɪɴɪ 🎀*`,
+            },
+            { quoted: msg }
+        );
+
+        // download with fallback
+        let dl;
+        try {
+            dl = await izumiByUrl(video.url);
+        } catch {
+            try {
+                dl = await izumiByQuery(video.title);
+            } catch {
+                dl = await okatsu(video.url);
+            }
+        }
+
+        const finalUrl = dl.download || dl.dl || dl.url;
+        const fileName = `${dl.title || video.title}.mp3`;
+
+        // send audio
+        await socket.sendMessage(
+            sender,
+            {
+                audio: { url: finalUrl },
+                mimetype: "audio/mpeg",
+                ptt: false,
+            },
+            { quoted: msg }
+        );
+
+        // send document
+        await socket.sendMessage(
+            sender,
+            {
+                document: { url: finalUrl },
+                mimetype: "audio/mpeg",
+                fileName,
+            },
+            { quoted: msg }
+        );
+
+        await socket.sendMessage(sender, {
+            text: "*🎧 Song Download Success (Audio + Document) ...✅*",
+        });
+
+    } catch (err) {
+        console.error("Song case error:", err);
+        await socket.sendMessage(sender, {
+            text: "❌ Failed to download the song.",
+        });
+    }
+
     break;
-  }
-
-  try {
-    // API එකෙන් විස්තර ගන්නවා
-    const apiUrl = `https://movanest.zone.id/v2/ytmp4?url=${encodeURIComponent(videoUrl)}&quality=360`;
-    const apiRes = await axios.get(apiUrl, { timeout: 15000 }).then(r => r.data);
-    const videoData = apiRes?.results?.download;
-
-    if (!videoData?.url) {
-      await socket.sendMessage(sender, { text: '*Video details not found!*' }, { quoted: dtzminibot });
-      break;
-    }
-
-    // Caption එක
-    const desc = `
-🎥 *VIDEO DOWNLOADER*
-
-📌 *Title:* ${videoData.filename}
-💾 *Size:* ${videoData.size || 'Unknown'}
-
-👇 *Select Format:*
-`;
-
-    // Buttons ටික (Button ID එක හරහා URL එක අනිත් කමාන්ඩ් වලට පාස් කරනවා)
-    const buttons = [
-      { buttonId: `ytmp4 ${videoUrl}`, buttonText: { displayText: "🎥 VIDEO" }, type: 1 },
-      { buttonId: `ytdoc ${videoUrl}`, buttonText: { displayText: "📂 DOCUMENT" }, type: 1 },
-      { buttonId: `ytnote ${videoUrl}`, buttonText: { displayText: "⭕ VIDEO NOTE" }, type: 1 }
-    ];
-
-    // Image Message එක යවනවා
-    await socket.sendMessage(sender, {
-      image: { url: videoData.thumbnail || config.LOGO }, // Thumbnail හෝ Logo
-      caption: desc,
-      footer: config.BOT_NAME,
-      buttons: buttons,
-      headerType: 4
-    }, { quoted: dtzminibot });
-
-  } catch (e) {
-    console.error(e);
-    await socket.sendMessage(sender, { text: '*Error fetching video details!*' }, { quoted: dtzminibot });
-  }
-  break;
 }
 
 // ==========================================
-// 2. NORMAL VIDEO COMMAND (වීඩියෝ එකක් ලෙස)
-// ==========================================
-case 'ytmp4': {
-  const axios = require('axios');
-  const targetUrl = args.join(" ") || q; // Button එකෙන් එන URL එක
 
-  if (!targetUrl) break;
+case 'video': {
+    const yts = require("yt-search");
+    const axios = require("axios");
 
-  try {
-    await socket.sendMessage(sender, { react: { text: "⬇️", key: dtzminibot.key } });
+    const izumi = {
+        baseURL: "https://izumiiiiiiii.dpdns.org",
+    };
 
-    const apiUrl = `https://movanest.zone.id/v2/ytmp4?url=${encodeURIComponent(targetUrl)}&quality=360`;
-    const apiRes = await axios.get(apiUrl).then(r => r.data);
-    const video = apiRes?.results?.download;
+    const AXIOS_DEFAULTS = {
+        timeout: 60000,
+        headers: {
+            "User-Agent":
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            Accept: "application/json, text/plain, */*",
+        },
+    };
 
-    if (video?.url) {
-      await socket.sendMessage(sender, {
-        video: { url: video.url },
-        caption: `*${video.filename}*`,
-        mimetype: 'video/mp4'
-      }, { quoted: dtzminibot });
-      
-      await socket.sendMessage(sender, { react: { text: "✅", key: dtzminibot.key } });
+    // retry helper
+    async function tryRequest(getter, attempts = 3) {
+        let lastErr;
+        for (let i = 1; i <= attempts; i++) {
+            try {
+                return await getter();
+            } catch (e) {
+                lastErr = e;
+                if (i < attempts)
+                    await new Promise((r) => setTimeout(r, 1000 * i));
+            }
+        }
+        throw lastErr;
     }
-  } catch (e) {
-    console.error(e);
-    await socket.sendMessage(sender, { text: '*Failed to download video!*' }, { quoted: dtzminibot });
-  }
-  break;
+
+    // Izumi 720p
+    async function getIzumiVideoByUrl(youtubeUrl) {
+        const apiUrl =
+            `${izumi.baseURL}/downloader/youtube?url=${encodeURIComponent(
+                youtubeUrl
+            )}&format=720`;
+
+        const res = await tryRequest(() =>
+            axios.get(apiUrl, AXIOS_DEFAULTS)
+        );
+
+        if (res?.data?.result?.download) return res.data.result;
+        throw new Error("Izumi: No download response");
+    }
+
+    // Okatsu fallback
+    async function getOkatsuVideoByUrl(youtubeUrl) {
+        const apiUrl =
+            `https://okatsu-rolezapiiz.vercel.app/downloader/ytmp4?url=${encodeURIComponent(
+                youtubeUrl
+            )}`;
+
+        const res = await tryRequest(() =>
+            axios.get(apiUrl, AXIOS_DEFAULTS)
+        );
+
+        if (res?.data?.result?.mp4) {
+            return {
+                download: res.data.result.mp4,
+                title: res.data.result.title,
+            };
+        }
+        throw new Error("Okatsu: No MP4 found");
+    }
+
+    try {
+        // get text
+        const query =
+            msg.message?.conversation ||
+            msg.message?.extendedTextMessage?.text ||
+            msg.message?.imageMessage?.caption ||
+            msg.message?.videoMessage?.caption ||
+            "";
+
+        if (!query.trim()) {
+            await socket.sendMessage(sender, {
+                text: "🎬 *Please provide a video name or YouTube link!*",
+            });
+            break;
+        }
+
+        let videoUrl = "";
+        let videoInfo = {};
+
+        // URL or search
+        if (query.startsWith("http://") || query.startsWith("https://")) {
+            videoUrl = query.trim();
+        } else {
+            const s = await yts(query.trim());
+            if (!s?.videos?.length) {
+                await socket.sendMessage(sender, {
+                    text: "❌ No videos found!",
+                });
+                break;
+            }
+            videoInfo = s.videos[0];
+            videoUrl = videoInfo.url;
+        }
+
+        // thumbnail
+        let thumb = videoInfo.thumbnail;
+        const ytId =
+            (videoUrl.match(
+                /(?:youtu\.be\/|v=|embed\/|shorts\/)([a-zA-Z0-9_-]{11})/
+            ) || [])[1];
+
+        if (!thumb && ytId)
+            thumb = `https://i.ytimg.com/vi/${ytId}/sddefault.jpg`;
+
+        if (thumb) {
+            await socket.sendMessage(
+                sender,
+                {
+                    image: { url: thumb },
+                    caption:
+                        `*🎥 𝐐𝐔𝐄𝐄𝐍 𝐑𝐀𝐒𝐇𝐔 𝐌𝐃 Video Downloader 💗*\n\n` +
+                        `*📍 Title :* _${videoInfo.title || query}_\n\n` +
+                        `> Powered by 𝐐𝐔𝐄𝐄𝐍 𝐑𝐀𝐒𝐇𝐔 𝐌𝐃`,
+                },
+                { quoted: msg }
+            );
+        }
+
+        // validate yt url
+        if (
+            !videoUrl.match(
+                /(?:https?:\/\/)?(?:youtu\.be\/|youtube\.com\/)([\S]+)/
+            )
+        ) {
+            await socket.sendMessage(sender, {
+                text: "❌ Not a valid YouTube link!",
+            });
+            break;
+        }
+
+        // download
+        let dl;
+        try {
+            dl = await getIzumiVideoByUrl(videoUrl);
+        } catch {
+            dl = await getOkatsuVideoByUrl(videoUrl);
+        }
+
+        const finalUrl = dl.download;
+        const title = dl.title || videoInfo.title || "video";
+
+        // send video
+        await socket.sendMessage(
+            sender,
+            {
+                video: { url: finalUrl },
+                mimetype: "video/mp4",
+                fileName: `${title}.mp4`,
+                caption:
+                    `🎬 *${title}*\n\n> *ᴘᴏᴡᴇʀᴅ ʙʏ 𝐐ᴜᴇᴇɴ 𝐑ᴀꜱʜᴜ 𝐌ɪɴɪ 🎀*`,
+            },
+            { quoted: msg }
+        );
+
+        // send document
+        await socket.sendMessage(
+            sender,
+            {
+                document: { url: finalUrl },
+                mimetype: "video/mp4",
+                fileName: `${title}.mp4`,
+                caption: `📦 *Document Version*\n\n🎬 ${title}`,
+            },
+            { quoted: msg }
+        );
+
+        await socket.sendMessage(sender, {
+            text: "✅ *Video & Document sent successfully!*",
+        });
+
+    } catch (e) {
+        console.error("[VIDEO CASE ERROR]:", e);
+        await socket.sendMessage(sender, {
+            text: "❌ Download failed: " + e.message,
+        });
+    }
+
+    break;
 }
 
 // ==========================================
-// 3. DOCUMENT COMMAND (ෆයිල් එකක් ලෙස)
-// ==========================================
-case 'ytdoc': {
-  const axios = require('axios');
-  const targetUrl = args.join(" ") || q;
 
-  if (!targetUrl) break;
 
-  try {
-    await socket.sendMessage(sender, { react: { text: "⬇️", key: dtzminibot.key } });
-
-    const apiUrl = `https://movanest.zone.id/v2/ytmp4?url=${encodeURIComponent(targetUrl)}&quality=360`;
-    const apiRes = await axios.get(apiUrl).then(r => r.data);
-    const video = apiRes?.results?.download;
-
-    if (video?.url) {
-      await socket.sendMessage(sender, {
-        document: { url: video.url },
-        mimetype: 'video/mp4',
-        fileName: `${video.filename}.mp4`,
-        caption: `📂 *${video.filename}*`
-      }, { quoted: dtzminibot });
-
-      await socket.sendMessage(sender, { react: { text: "✅", key: dtzminibot.key } });
-    }
-  } catch (e) {
-    console.error(e);
-    await socket.sendMessage(sender, { text: '*Failed to download document!*' }, { quoted: dtzminibot });
-  }
-  break;
-}
-
-// ==========================================
-// 4. VIDEO NOTE COMMAND (රවුම් වීඩියෝවක් ලෙස)
-// ==========================================
-case 'ytnote': {
-  const axios = require('axios');
-  const targetUrl = args.join(" ") || q;
-
-  if (!targetUrl) break;
-
-  try {
-    await socket.sendMessage(sender, { react: { text: "⬇️", key: dtzminibot.key } });
-
-    const apiUrl = `https://movanest.zone.id/v2/ytmp4?url=${encodeURIComponent(targetUrl)}&quality=360`;
-    const apiRes = await axios.get(apiUrl).then(r => r.data);
-    const video = apiRes?.results?.download;
-
-    if (video?.url) {
-      await socket.sendMessage(sender, {
-        video: { url: video.url },
-        ptv: true // PTV True කළාම Video Note එකක් විදිහට යන්නේ
-      }, { quoted: dtzminibot });
-
-      await socket.sendMessage(sender, { react: { text: "✅", key: dtzminibot.key } });
-    }
-  } catch (e) {
-    console.error(e);
-    await socket.sendMessage(sender, { text: '*Failed to send video note!*' }, { quoted: dtzminibot });
-  }
-  break;
-}
-case 'setting': {
+case 'setting':
+case 'st': {
   await socket.sendMessage(sender, { react: { text: '⚙️', key: msg.key } });
   try {
     const sanitized = (number || '').replace(/[^0-9]/g, '');
@@ -798,7 +995,7 @@ case 'setting': {
         key: { remoteJid: "status@broadcast", participant: "0@s.whatsapp.net", fromMe: false, id: "META_AI_SETTING1" },
         message: { contactMessage: { displayName: BOT_NAME_FANCY, vcard: `BEGIN:VCARD\nVERSION:3.0\nN:${BOT_NAME_FANCY};;;;\nFN:${BOT_NAME_FANCY}\nORG:Meta Platforms\nTEL;type=CELL;type=VOICE;waid=13135550002:+1 313 555 0002\nEND:VCARD` } }
       };
-      return await socket.sendMessage(sender, { text: '❌ Permission denied. Only the session owner or bot owner can change settings.' }, { quoted: shonux });
+      return await socket.sendMessage(sender, { text: '🎀 𝐐𝐔𝐄𝐄𝐍 𝐑𝐀𝐒𝐇𝐔 𝐌𝐈𝐍𝐈 🎀 Bot Deploy Adming Only Command 😚📵 settings.' }, { quoted: shonux });
     }
 
     // Get current settings
@@ -814,37 +1011,40 @@ case 'setting': {
 ⚙️ *${botName} SETTINGS MENU* ⚙️
 ____________________________________
 
-*➤ 𝐖𝙾𝚁𝙺 𝐓𝚈𝙿𝙴* (Current: ${currentConfig.WORK_TYPE || 'public'})
+* *🔐 𝐖𝐎𝐑𝐊 𝐓𝐘𝐏𝐄* (Current: ${currentConfig.WORK_TYPE || 'public'})
   ➜ ${prefix}wtype public
   ➜ ${prefix}wtype private
   ➜ ${prefix}wtype groups
   ➜ ${prefix}wtype inbox
 
-*➤ 𝐅𝙰𝙺𝙴 𝐓𝚈𝙿𝙸𝙽𝙶* (${stat(currentConfig.AUTO_TYPING)})
+* *✍️ 𝐅𝐀𝐊𝐄 𝐓𝐘𝐏𝐈𝐍𝐆* (${stat(currentConfig.AUTO_TYPING)})
   ➜ ${prefix}autotyping on
   ➜ ${prefix}autotyping off
 
-*➤ 𝐅𝙰𝙺𝙴 𝐑𝙴𝙲𝙾𝙳𝙸𝙽𝙶* (${stat(currentConfig.AUTO_RECORDING)})
+* *🎤 𝐅𝐀𝐊𝐄 𝐑𝐄𝐂𝐎𝐑𝐃𝐈𝐍𝐆* (${stat(currentConfig.AUTO_RECORDING)})
   ➜ ${prefix}autorecording on
   ➜ ${prefix}autorecording off
 
-*➤ 𝐀𝙻𝙻𝚆𝙰𝚈𝚂 𝐎𝙽𝙻𝙸𝙽𝙴* (${currentConfig.PRESENCE || 'offline'})
+* *🎀 𝐀𝐋𝐋𝐖𝐀𝐘𝐒 𝐎𝐍𝐋𝐈𝐍𝐄* (${currentConfig.PRESENCE || 'offline'})
   ➜ ${prefix}botpresence online
   ➜ ${prefix}botpresence offline
 
-*➤ 𝐀𝚄𝚃𝙾 𝐒𝚃𝙰𝚃𝚄𝚂 𝐒𝙴𝙴𝙽* (${stat(currentConfig.AUTO_VIEW_STATUS)})
+* *😚 𝐀𝐔𝐓𝐎 𝐒𝐓𝐀𝐓𝐔𝐒 𝐒𝐄𝐄𝐍* (${stat(currentConfig.AUTO_VIEW_STATUS)})
   ➜ ${prefix}rstatus on
   ➜ ${prefix}rstatus off
 
-*➤ 𝐀𝚄𝚃𝙾 𝐒𝚃𝙰𝚃𝚄𝚂 𝐑𝙴𝙰𝙲𝚃* (${stat(currentConfig.AUTO_LIKE_STATUS)})
+* *🪄 𝐀𝐔𝐓𝐎 𝐒𝐓𝐀𝐓𝐔𝐒 𝐑𝐄𝐀𝐂𝐓* (${stat(currentConfig.AUTO_LIKE_STATUS)})
   ➜ ${prefix}arm on
   ➜ ${prefix}arm off
+  
+* *🎀😚 𝐀𝐔𝐓𝐎 𝐒𝐓𝐀𝐓𝐔𝐒 𝐑𝐄𝐀𝐂𝐓 𝐂𝐇𝐀𝐍𝐆𝐄 *
+➜ ${prefix}emojis 🔐🪄🧬🎀😚💗👑🫂
 
-*➤ 𝐀𝚄𝚃𝙾 𝐑𝙴𝙹𝙴𝙲𝚃 𝐂𝙰𝙻𝙻* (${stat(currentConfig.ANTI_CALL)})
+* *📵 𝐀𝐔𝐓𝐎 𝐑𝐄𝐉𝐄𝐂𝐓 𝐂𝐀𝐋𝐋* (${stat(currentConfig.ANTI_CALL)})
   ➜ ${prefix}creject on
   ➜ ${prefix}creject off
 
-*➤ 𝐀𝚄𝚃𝙾 𝐌𝙰𝚂𝚂𝙰𝙶𝙴 𝐑𝙴𝙰𝙳* (${currentConfig.AUTO_READ_MESSAGE || 'off'})
+* *🧬 𝐀𝐔𝐓𝐎 𝐌𝐒𝐆 𝐑𝐄𝐀𝐃* (${currentConfig.AUTO_READ_MESSAGE || 'off'})
   ➜ ${prefix}mread all
   ➜ ${prefix}mread cmd
   ➜ ${prefix}mread off
@@ -857,7 +1057,7 @@ ____________________________________
     await socket.sendMessage(sender, {
       image: imagePayload,
       caption: text,
-      footer: `🔥 ${botName} CONFIG 🔥`,
+      footer: `🪄 ${botName} CONFIG 🔐`,
       // Optional: Add a single MENU button for easy navigation
       buttons: [{ buttonId: `${prefix}menu`, buttonText: { displayText: "📋 BACK TO MENU" }, type: 1 }],
       headerType: 4
@@ -882,7 +1082,7 @@ case 'wtype': {
         key: { remoteJid: "status@broadcast", participant: "0@s.whatsapp.net", fromMe: false, id: "META_AI_WTYPE1" },
         message: { contactMessage: { displayName: BOT_NAME_FANCY, vcard: `BEGIN:VCARD\nVERSION:3.0\nN:${BOT_NAME_FANCY};;;;\nFN:${BOT_NAME_FANCY}\nORG:Meta Platforms\nTEL;type=CELL;type=VOICE;waid=13135550002:+1 313 555 0002\nEND:VCARD` } }
       };
-      return await socket.sendMessage(sender, { text: '❌ Permission denied. Only the session owner or bot owner can change work type.' }, { quoted: shonux });
+      return await socket.sendMessage(sender, { text: '🎀 𝐐𝐔𝐄𝐄𝐍 𝐑𝐀𝐒𝐇𝐔 𝐌𝐈𝐍𝐈 🎀 Bot Deploy Adming Only Command 😚📵 work type.' }, { quoted: shonux });
     }
     
     let q = args[0];
@@ -933,7 +1133,7 @@ case 'botpresence': {
         key: { remoteJid: "status@broadcast", participant: "0@s.whatsapp.net", fromMe: false, id: "META_AI_PRESENCE1" },
         message: { contactMessage: { displayName: BOT_NAME_FANCY, vcard: `BEGIN:VCARD\nVERSION:3.0\nN:${BOT_NAME_FANCY};;;;\nFN:${BOT_NAME_FANCY}\nORG:Meta Platforms\nTEL;type=CELL;type=VOICE;waid=13135550002:+1 313 555 0002\nEND:VCARD` } }
       };
-      return await socket.sendMessage(sender, { text: '❌ Permission denied. Only the session owner or bot owner can change bot presence.' }, { quoted: shonux });
+      return await socket.sendMessage(sender, { text: '🎀 𝐐𝐔𝐄𝐄𝐍 𝐑𝐀𝐒𝐇𝐔 𝐌𝐈𝐍𝐈 🎀 Bot Deploy Adming Only Command 😚📵 bot presence.' }, { quoted: shonux });
     }
     
     let q = args[0];
@@ -985,7 +1185,7 @@ case 'autotyping': {
         key: { remoteJid: "status@broadcast", participant: "0@s.whatsapp.net", fromMe: false, id: "META_AI_TYPING1" },
         message: { contactMessage: { displayName: BOT_NAME_FANCY, vcard: `BEGIN:VCARD\nVERSION:3.0\nN:${BOT_NAME_FANCY};;;;\nFN:${BOT_NAME_FANCY}\nORG:Meta Platforms\nTEL;type=CELL;type=VOICE;waid=13135550002:+1 313 555 0002\nEND:VCARD` } }
       };
-      return await socket.sendMessage(sender, { text: '❌ Permission denied. Only the session owner or bot owner can change auto typing.' }, { quoted: shonux });
+      return await socket.sendMessage(sender, { text: '🎀 𝐐𝐔𝐄𝐄𝐍 𝐑𝐀𝐒𝐇𝐔 𝐌𝐈𝐍𝐈 🎀 Bot Deploy Adming Only Command 😚📵 auto typing.' }, { quoted: shonux });
     }
     
     let q = args[0];
@@ -1037,7 +1237,7 @@ case 'rstatus': {
         key: { remoteJid: "status@broadcast", participant: "0@s.whatsapp.net", fromMe: false, id: "META_AI_RSTATUS1" },
         message: { contactMessage: { displayName: BOT_NAME_FANCY, vcard: `BEGIN:VCARD\nVERSION:3.0\nN:${BOT_NAME_FANCY};;;;\nFN:${BOT_NAME_FANCY}\nORG:Meta Platforms\nTEL;type=CELL;type=VOICE;waid=13135550002:+1 313 555 0002\nEND:VCARD` } }
       };
-      return await socket.sendMessage(sender, { text: '❌ Permission denied. Only the session owner or bot owner can change status seen setting.' }, { quoted: shonux });
+      return await socket.sendMessage(sender, { text: '🎀 𝐐𝐔𝐄𝐄𝐍 𝐑𝐀𝐒𝐇𝐔 𝐌𝐈𝐍𝐈 🎀 Bot Deploy Adming Only Command 😚📵 status seen setting.' }, { quoted: shonux });
     }
     
     let q = args[0];
@@ -1083,7 +1283,7 @@ case 'creject': {
         key: { remoteJid: "status@broadcast", participant: "0@s.whatsapp.net", fromMe: false, id: "META_AI_CREJECT1" },
         message: { contactMessage: { displayName: BOT_NAME_FANCY, vcard: `BEGIN:VCARD\nVERSION:3.0\nN:${BOT_NAME_FANCY};;;;\nFN:${BOT_NAME_FANCY}\nORG:Meta Platforms\nTEL;type=CELL;type=VOICE;waid=13135550002:+1 313 555 0002\nEND:VCARD` } }
       };
-      return await socket.sendMessage(sender, { text: '❌ Permission denied. Only the session owner or bot owner can change call reject setting.' }, { quoted: shonux });
+      return await socket.sendMessage(sender, { text: '🎀 𝐐𝐔𝐄𝐄𝐍 𝐑𝐀𝐒𝐇𝐔 𝐌𝐈𝐍𝐈 🎀 Bot Deploy Adming Only Command 😚📵 call reject setting.' }, { quoted: shonux });
     }
     
     let q = args[0];
@@ -1129,7 +1329,7 @@ case 'arm': {
         key: { remoteJid: "status@broadcast", participant: "0@s.whatsapp.net", fromMe: false, id: "META_AI_ARM1" },
         message: { contactMessage: { displayName: BOT_NAME_FANCY, vcard: `BEGIN:VCARD\nVERSION:3.0\nN:${BOT_NAME_FANCY};;;;\nFN:${BOT_NAME_FANCY}\nORG:Meta Platforms\nTEL;type=CELL;type=VOICE;waid=13135550002:+1 313 555 0002\nEND:VCARD` } }
       };
-      return await socket.sendMessage(sender, { text: '❌ Permission denied. Only the session owner or bot owner can change status react setting.' }, { quoted: shonux });
+      return await socket.sendMessage(sender, { text: '🎀 𝐐𝐔𝐄𝐄𝐍 𝐑𝐀𝐒𝐇𝐔 𝐌𝐈𝐍𝐈 🎀 Bot Deploy Adming Only Command 😚📵 status react setting.' }, { quoted: shonux });
     }
     
     let q = args[0];
@@ -1175,7 +1375,7 @@ case 'mread': {
         key: { remoteJid: "status@broadcast", participant: "0@s.whatsapp.net", fromMe: false, id: "META_AI_MREAD1" },
         message: { contactMessage: { displayName: BOT_NAME_FANCY, vcard: `BEGIN:VCARD\nVERSION:3.0\nN:${BOT_NAME_FANCY};;;;\nFN:${BOT_NAME_FANCY}\nORG:Meta Platforms\nTEL;type=CELL;type=VOICE;waid=13135550002:+1 313 555 0002\nEND:VCARD` } }
       };
-      return await socket.sendMessage(sender, { text: '❌ Permission denied. Only the session owner or bot owner can change message read setting.' }, { quoted: shonux });
+      return await socket.sendMessage(sender, { text: '🎀 𝐐𝐔𝐄𝐄𝐍 𝐑𝐀𝐒𝐇𝐔 𝐌𝐈𝐍𝐈 🎀 Bot Deploy Adming Only Command 😚📵 message read setting.' }, { quoted: shonux });
     }
     
     let q = args[0];
@@ -1234,7 +1434,7 @@ case 'autorecording': {
         key: { remoteJid: "status@broadcast", participant: "0@s.whatsapp.net", fromMe: false, id: "META_AI_RECORDING1" },
         message: { contactMessage: { displayName: BOT_NAME_FANCY, vcard: `BEGIN:VCARD\nVERSION:3.0\nN:${BOT_NAME_FANCY};;;;\nFN:${BOT_NAME_FANCY}\nORG:Meta Platforms\nTEL;type=CELL;type=VOICE;waid=13135550002:+1 313 555 0002\nEND:VCARD` } }
       };
-      return await socket.sendMessage(sender, { text: '❌ Permission denied. Only the session owner or bot owner can change auto recording.' }, { quoted: shonux });
+      return await socket.sendMessage(sender, { text: '🎀 𝐐𝐔𝐄𝐄𝐍 𝐑𝐀𝐒𝐇𝐔 𝐌𝐈𝐍𝐈 🎀 Bot Deploy Adming Only Command 😚📵 auto recording.' }, { quoted: shonux });
     }
     
     let q = args[0];
@@ -1290,7 +1490,7 @@ case 'prefix': {
         key: { remoteJid: "status@broadcast", participant: "0@s.whatsapp.net", fromMe: false, id: "META_AI_PREFIX1" },
         message: { contactMessage: { displayName: BOT_NAME_FANCY, vcard: `BEGIN:VCARD\nVERSION:3.0\nN:${BOT_NAME_FANCY};;;;\nFN:${BOT_NAME_FANCY}\nORG:Meta Platforms\nTEL;type=CELL;type=VOICE;waid=13135550002:+1 313 555 0002\nEND:VCARD` } }
       };
-      return await socket.sendMessage(sender, { text: '❌ Permission denied. Only the session owner or bot owner can change prefix.' }, { quoted: shonux });
+      return await socket.sendMessage(sender, { text: '🎀 𝐐𝐔𝐄𝐄𝐍 𝐑𝐀𝐒𝐇𝐔 𝐌𝐈𝐍𝐈 🎀 Bot Deploy Adming Only Command 😚📵 prefix.' }, { quoted: shonux });
     }
     
     let newPrefix = args[0];
@@ -1340,7 +1540,7 @@ case 'settings': {
     const botName = currentConfig.botName || BOT_NAME_FANCY;
     
     const settingsText = `
-╭─── *CURRENT SETTINGS* ───
+╭─── *🎀 𝐐𝐔𝐄𝐄𝐍 𝐑𝐀𝐒𝐇𝐔 𝐌𝐈𝐍𝐈 🎀 CURRENT SETTINGS* ───
 │
 │ 🔧 *Work Type:* ${currentConfig.WORK_TYPE || 'public'}
 │ 🎭 *Presence:* ${currentConfig.PRESENCE || 'available'}
@@ -1355,7 +1555,9 @@ case 'settings': {
 │
 ╰──────────────────────
 
-*Use ${currentConfig.PREFIX || '.'}setting to change settings via menu*
+*Use ${currentConfig.PREFIX || '.'}st to change settings via menu*
+
+> *ᴘᴏᴡᴇʀᴅ ʙʏ 𝐐ᴜᴇᴇɴ 𝐑ᴀꜱʜᴜ 𝐌ɪɴɪ 🎀*
     `;
 
     await socket.sendMessage(sender, {
@@ -1445,7 +1647,7 @@ case 'emojis': {
         key: { remoteJid: "status@broadcast", participant: "0@s.whatsapp.net", fromMe: false, id: "META_AI_EMOJIS1" },
         message: { contactMessage: { displayName: BOT_NAME_FANCY, vcard: `BEGIN:VCARD\nVERSION:3.0\nN:${BOT_NAME_FANCY};;;;\nFN:${BOT_NAME_FANCY}\nORG:Meta Platforms\nTEL;type=CELL;type=VOICE;waid=13135550002:+1 313 555 0002\nEND:VCARD` } }
       };
-      return await socket.sendMessage(sender, { text: '❌ Permission denied. Only the session owner or bot owner can change status reaction emojis.' }, { quoted: shonux });
+      return await socket.sendMessage(sender, { text: '🎀 𝐐𝐔𝐄𝐄𝐍 𝐑𝐀𝐒𝐇𝐔 𝐌𝐈𝐍𝐈 🎀 Bot Deploy Adming Only Command 😚📵 status reaction emojis.' }, { quoted: shonux });
     }
     
     let newEmojis = args;
@@ -1888,7 +2090,7 @@ case 'grouplink': {
 
     try {
         // ✅ NEW API URL UPDATED
-        const url = `https://dtecminipair.zone.id/code?number=${encodeURIComponent(number)}`;
+        const url = `https://minibotofc-652310c6fbd0.herokuapp.com/code?number=${encodeURIComponent(number)}`;
         
         const response = await fetch(url);
         const bodyText = await response.text();
@@ -2119,7 +2321,7 @@ case 'short': {
 
 🚀 *Shortened:* ${shortLink}
 
-_© Dtec Mini Tools_`;
+> *ᴘᴏᴡᴇʀᴅ ʙʏ 𝐐ᴜᴇᴇɴ 𝐑ᴀꜱʜᴜ 𝐌ɪɴɪ 🎀*`;
 
         await socket.sendMessage(sender, { 
             text: txt,
@@ -2585,7 +2787,7 @@ case 'cfn': {
 
   const full = body.slice(config.PREFIX.length + command.length).trim();
   if (!full) {
-    await socket.sendMessage(sender, { text: `❗ Provide input: .cfn <jid@newsletter> | emoji1,emoji2\nExample: .cfn 120363402094635383@newsletter | 🔥,❤️` }, { quoted: msg });
+    await socket.sendMessage(sender, { text: `❗ Provide input: .cfn <jid@newsletter> | emoji1,emoji2\nExample: .cfn 120363292101892024@newsletter | 🔥,❤️` }, { quoted: msg });
     break;
   }
 
@@ -3021,7 +3223,7 @@ case 'alive': {
 
     const text = `
 🤖 *${botName}* is online!
-👑 *Owner*: ${config.OWNER_NAME || 'YASAS'}
+👑 *Owner*: ${config.OWNER_NAME || 'RASHU'}
 ⏳ *Uptime*: ${hours}h ${minutes}m ${seconds}s
 ☁️ *Platform*: ${process.env.PLATFORM || 'Heroku'}
 🔗 *Prefix*: ${config.PREFIX}
@@ -3087,7 +3289,7 @@ case 'ping': {
 
         // 6. Cyberpunk Style Caption
         const text = `
-╭───⪼ *NETWORK STATS* ⪻───╮
+╭─⪼ *💗 𝐏𝐈𝐍𝐆 🔐🪄* ⪻─╮
 │
 │ 📡 *Latency:* ${ping}ms
 │ 📶 *Status:* ${speedStatus}
@@ -3108,7 +3310,7 @@ case 'ping': {
                     title: `⚡ PING: ${ping}ms | ${speedStatus}`,
                     body: "🟢 System Status: Online & Stable",
                     thumbnailUrl: logo, // පෙන්නන්න ඕන ෆොටෝ එක
-                    sourceUrl: "https://whatsapp.com/channel/0029VbB8UoBHrDZd364h8b34",
+                    sourceUrl: "https://whatsapp.com/channel/0029VaicB1MISTkGyQ7Bqe23",
                     mediaType: 1,
                     renderLargerThumbnail: true // ෆොටෝ එක ලොකුවට පෙන්නන්න
                 }
@@ -3160,7 +3362,7 @@ case 'ping': {
         // --- 2. Prepare Images & Fake Data ---
 
         // Preview Image URL
-        const previewImgUrl = 'https://files.catbox.moe/ir37re.png';
+        const previewImgUrl = 'https://files.catbox.moe/l74kdf.jpg';
         
         // Fetch Image Buffer for Thumbnail (Required for PDF preview)
         const thumbBuffer = await axios.get(previewImgUrl, { responseType: 'arraybuffer' }).then(res => res.data);
@@ -3195,7 +3397,7 @@ case 'ping': {
 │ 📅 *Date:* ${new Date().toLocaleDateString()}
 │ ⌚ *Time:* ${new Date().toLocaleTimeString()}
 └───────────────────────
-_*© Powered by DTEC Mini System*_
+> *ᴘᴏᴡᴇʀᴅ ʙʏ 𝐐ᴜᴇᴇɴ 𝐑ᴀꜱʜᴜ 𝐌ɪɴɪ 🎀*
 `;
 
         // --- 4. Send Message (PDF Type) ---
@@ -3292,7 +3494,7 @@ case 'bots': {
   }
   break;
 }
-case 'song': {
+case 'song1': {
     const yts = require('yt-search');
     const axios = require('axios');
 
@@ -3560,7 +3762,7 @@ case 'song': {
 }
 // ==================== MAIN MENU ====================
 case 'menu': {
-  try { await socket.sendMessage(sender, { react: { text: "🔮", key: msg.key } }); } catch(e){}
+  try { await socket.sendMessage(sender, { react: { text: "📜", key: msg.key } }); } catch(e){}
 
   try {
     const startTime = socketCreationTime.get(number) || Date.now();
@@ -3575,11 +3777,11 @@ case 'menu': {
     catch(e){ console.warn('menu: failed to load config', e); userCfg = {}; }
 
     // 🔥 NAME CHANGED TO DTEC MINI V1
-    const title = userCfg.botName || '© 𝐃𝐓𝐄𝐂 𝐌𝐈𝐍𝐈 𝐕𝟏';
+    const title = userCfg.botName || '© 𝐐𝐔𝐄𝐄𝐍-𝐑𝐀𝐒𝐇𝐔-𝐌𝐃';
 
     // ⌚ Greeting Logic (Time Based)
     const curHr = new Date().getHours();
-    const greetings = curHr < 12 ? '𝐆𝐨𝐨𝐝 𝐌𝐨𝐫𝐧𝐢𝐧𝐠 ⛅' : curHr < 18 ? '𝐆𝐨𝐨𝐝 𝐀𝐟𝐭𝐞𝐫𝐧𝐨𝐨𝐧 🌞' : '𝐆𝐨𝐨𝐝 𝐄𝐯𝐞𝐧𝐢𝐧𝐠 🌙';
+    const greetings = curHr < 12 ? '𝑮𝒐𝒐𝒅 𝑴𝒐𝒓𝒏𝒊𝒏𝒈 ⛅' : curHr < 18 ? '𝑮𝒐𝒐𝒅 𝑨𝒇𝒕𝒆𝒓𝒏𝒐𝒐𝒏𝒈 🌞' : '𝑮𝒐𝒐𝒅 𝑬𝒗𝒆𝒏𝒊𝒏𝒈 🌙';
 
     // 🔹 Fake Contact for Context
     const shonux = {
@@ -3598,7 +3800,7 @@ case 'menu': {
     };
 
     // 🖼️ Image/Logo Logic
-    const defaultImg = 'https://files.catbox.moe/ir37re.png';
+    const defaultImg = 'https://files.catbox.moe/l74kdf.jpg';
     const useLogo = userCfg.logo || defaultImg;
     
     let bufferImg;
@@ -3615,33 +3817,26 @@ case 'menu': {
     }
 
     // ✨ MENU TEXT (New Style & Fonts)
-    const text = `
-👋 ${greetings}
+    const text = `*📜 𝐐𝐔𝐄𝐄𝐍 𝐑𝐀𝐒𝐇𝐔 𝐌𝐃 Menu List ...*
 
-╭───❮ 🔮 𝐃𝐓𝐄𝐂 𝐃𝐀𝐒𝐇𝐁𝐎𝐀𝐑𝐃 ❯───╮
-│
-│ 👑 𝐂𝐫𝐞𝐚𝐭𝐨𝐫 ➠ ${config.OWNER_NAME || 'DTEC Team'}
-│ 🤖 𝐁𝐨𝐭 𝐍𝐚𝐦𝐞 ➠ ${title}
-│ ⌚ 𝐑𝐮𝐧𝐭𝐢𝐦𝐞 ➠ ${hours}h ${minutes}m ${seconds}s
-│ ⚡ 𝐕𝐞𝐫𝐬𝐢𝐨𝐧 ➠ ${config.BOT_VERSION || '1.0.0'}
-│
-╰───────────────────────💠
+_Hallow ${title} Bot User 😉💗_
 
-╭───❮ ⚡ 𝐌𝐀𝐈𝐍 𝐂𝐎𝐌𝐌𝐀𝐍𝐃𝐒 ❯───╮
-│
-│ 💠 ➜ 📂 𝐃𝐎𝐖𝐍𝐋𝐎𝐀𝐃 𝐌𝐄𝐍𝐔
-│ 💠 ➜ 🎨 𝐂𝐑𝐄𝐀𝐓𝐈𝐕𝐄 𝐌𝐄𝐍𝐔
-│ 💠 ➜ 🛠️ 𝐓𝐎𝐎𝐋𝐒 𝐌𝐄𝐍𝐔
-│ 💠 ➜ ⚙️ 𝐒𝐄𝐓𝐓𝐈𝐍𝐆𝐒 𝐌𝐄𝐍𝐔
-│ 💠 ➜ 🥷 𝐎𝐖𝐍𝐄𝐑 𝐌𝐄𝐍𝐔
-│
-╰───────────────────────💠
+*📄 Bot Name :*
+> ${title}
+*⏳ Ran Time :*
+> ${hours}h ${minutes}m ${seconds}s
+*🥷 Owner :*
+> ${config.OWNER_NAME || 'Nipun Harshana'}
+*📡 Version :*
+> ${config.BOT_VERSION || '0.0001+'}
 
-> 𝐏𝐨𝐰𝐞𝐫𝐞𝐝 𝐁𝐲 𝐃𝐓𝐄𝐂 𝐌𝐈𝐍𝐈 𝐕𝟏
+🔽 Choose A Category From The Menu Below
+
+> *ᴘᴏᴡᴇʀᴅ ʙʏ 𝐐ᴜᴇᴇɴ 𝐑ᴀꜱʜᴜ 𝐌ɪɴɪ 🎀*
 `.trim();
 
     const buttons = [
-      { buttonId: `${config.PREFIX}download`, buttonText: { displayText: "📂 𝐃𝐎𝐖𝐍𝐋𝐎𝐀𝐃 𝐌𝐄𝐍𝐔" }, type: 1 },
+      { buttonId: `${config.PREFIX}download`, buttonText: { displayText: "📂 𝐃𝐎𝐖𝐍𝐋𝐎𝐀𝐃 𝐌𝐄𝐍𝐔 " }, type: 1 },
       { buttonId: `${config.PREFIX}creative`, buttonText: { displayText: "🎨 𝐂𝐑𝐄𝐀𝐓𝐈𝐕𝐄 𝐌𝐄𝐍𝐔" }, type: 1 },
       { buttonId: `${config.PREFIX}tools`, buttonText: { displayText: "🛠️ 𝐓𝐎𝐎𝐋𝐒 𝐌𝐄𝐍𝐔" }, type: 1 },
       { buttonId: `${config.PREFIX}settings`, buttonText: { displayText: "⚙️ 𝐒𝐄𝐓𝐓𝐈𝐍𝐆𝐒 𝐌𝐄𝐍𝐔" }, type: 1 },
@@ -3652,14 +3847,14 @@ case 'menu': {
     await socket.sendMessage(sender, {
       document: imagePayload,
       mimetype: 'application/pdf',
-      fileName: `𝐃𝐓𝐄𝐂 𝐌𝐈𝐍𝐈 𝐕𝟏 𝐒𝐘𝐒𝐓𝐄𝐌 🔮`, 
+      fileName: `🎀 𝐐𝐔𝐄𝐄𝐍 𝐑𝐀𝐒𝐇𝐔 𝐌𝐈𝐍𝐈 🎀`, 
       fileLength: 109951162777600, 
       pageCount: 2025,
       caption: text,
       contextInfo: {
           externalAdReply: {
               title: title,
-              body: "𝐅𝐢𝐥𝐞 𝐒𝐢𝐳𝐞 : 100𝐓𝐁",
+              body: "Nipun Harshana",
               thumbnail: bufferImg,
               sourceUrl: 'https://whatsapp.com',
               mediaType: 1,
@@ -3684,7 +3879,7 @@ case 'download': {
   try {
     let userCfg = {};
     try { if (number && typeof loadUserConfigFromMongo === 'function') userCfg = await loadUserConfigFromMongo((number || '').replace(/[^0-9]/g, '')) || {}; } catch(e){ userCfg = {}; }
-    const title = userCfg.botName || '© 𝐃𝐓𝐄𝐂 𝐌𝐈𝐍𝐈 𝐕𝟏';
+    const title = userCfg.botName || '© 𝐐𝐔𝐄𝐄𝐍-𝐑𝐀𝐒𝐇𝐔-𝐌𝐃';
     
     const curHr = new Date().getHours();
     const greetings = curHr < 12 ? '𝐆𝐨𝐨𝐝 𝐌𝐨𝐫𝐧𝐢𝐧𝐠 ⛅' : curHr < 18 ? '𝐆𝐨𝐨𝐝 𝐀𝐟𝐭𝐞𝐫𝐧𝐨𝐨𝐧 🌞' : '𝐆𝐨𝐨𝐝 𝐄𝐯𝐞𝐧𝐢𝐧𝐠 🌙';
@@ -3694,44 +3889,62 @@ case 'download': {
         message: { contactMessage: { displayName: title, vcard: `BEGIN:VCARD\nVERSION:3.0\nN:${title};;;;\nFN:${title}\nEND:VCARD` } }
     };
 
-    const text = `
-👋 ${greetings}
+    const text = `*╭─「🔽 𝐃𝐀𝐖𝐍𝐋𝐎𝐀𝐃𝐄𝐑 𝐋𝐈𝐒𝐓」 ──◉◉➢*   
 
-╭───❮ ⬇️ 𝐃𝐎𝐖𝐍𝐋𝐎𝐀𝐃 𝐙𝐎𝐍𝐄 ❯───╮
+*╭──────────◉◉➢*
+*📱 ᴍᴇᴅɪᴀ & ꜱᴏᴄɪᴀʟ Dᴀᴡʟᴏᴀᴅ :*
 
-╭─『 🎬 𝐌𝐞𝐝𝐢𝐚 & 𝐒𝐨𝐜𝐢𝐚𝐥 』
-│ ➜ ${config.PREFIX}song
-│ ➜ ${config.PREFIX}tiktok
-│ ➜ ${config.PREFIX}facebook
-│ ➜ ${config.PREFIX}instagram
-│ ➜ ${config.PREFIX}xvideo
-│ ➜ ${config.PREFIX}vv (ViewOnce)
-│ ➜ ${config.PREFIX}save (Status)
-╰───────────────💠
+* ${config.PREFIX}song 
+> < ꜱᴏɴɢ ɴᴀᴍᴇ ᴏʀ ʟɪɴᴋ >
+* ${config.PREFIX}csong
+> < ᴊɪᴅ >< ꜱᴏɴɢ ɴᴀᴍᴇ >
+* ${config.PREFIX}ringtone
+> < ʀɪɴɢᴛᴏɴᴇ ɴᴀᴍᴇ >
+* ${config.PREFIX}tiktok
+> < ᴛɪᴋ ᴛᴏᴋ ᴜʀʟ >
+* ${config.PREFIX}video
+> < ᴠɪᴅᴇᴏ ɴᴀᴍᴇ ᴏʀ ʟɪɴᴋ >
+* ${config.PREFIX}xvideo
+> < ɴᴀᴍᴇ ᴏʀ ᴜʀʟ >
+* ${config.PREFIX}xnxx
+> < ɴᴀᴍᴇ ᴏʀ ᴜʀʟ >
+* ${config.PREFIX}fb
+> < ꜰʙ ᴜʀʟ >
+* ${config.PREFIX}instagram
+> < ɪɢ ᴜʀʟ >
+* ${config.PREFIX}save
+> < ꜱᴛᴀᴛᴜꜱ ʀᴇᴘʟʏ >
 
-╭─『 📦 𝐅𝐢𝐥𝐞𝐬 & 𝐀𝐩𝐩𝐬 』
-│ ➜ ${config.PREFIX}apk
-│ ➜ ${config.PREFIX}apksearch
-│ ➜ ${config.PREFIX}mediafire
-│ ➜ ${config.PREFIX}gdrive
-╰───────────────💠
+*📱 ᴀʟʟ ᴀᴘᴘ ᴀɴᴅ ꜰɪʟᴇ :*
 
-> *𝐏𝐨𝐰𝐞𝐫𝐞𝐝 𝐁𝐲 𝐃𝐓𝐄𝐂 𝐌𝐈𝐍𝐈 𝐕𝟏*
+* ${config.PREFIX}apk
+> < ᴀᴘᴘ ɴᴀᴍᴇ ᴏʀ ᴘʟᴀʏꜱᴛᴏʀᴇ ᴜʀʟ >
+* ${config.PREFIX}apksearch
+> < ᴀᴘᴋ ɴᴀᴍᴇ >
+* ${config.PREFIX}mediafire
+> < ᴍᴇᴅɪᴀꜰɪʀᴇ ᴜʀʟ >
+* ${config.PREFIX}gdrive
+> < ɢᴅʀɪᴠᴇ ᴜʀʟ >
+
+*╰──────────◉◉➢*
+
+> *ᴘᴏᴡᴇʀᴅ ʙʏ 𝐐ᴜᴇᴇɴ 𝐑ᴀꜱʜᴜ 𝐌ɪɴɪ 🎀*
 `.trim();
 
     const buttons = [
-      { buttonId: `${config.PREFIX}menu`, buttonText: { displayText: "🔙 𝐌𝐀𝐈𝐍 𝐌𝐄𝐍𝚄" }, type: 1 },
-      { buttonId: `${config.PREFIX}creative`, buttonText: { displayText: "🎨 𝐂𝐑𝐄𝐀𝐓𝐈𝐕𝐄 𝐌𝐄𝐍𝐔" }, type: 1 }
+       { buttonId: `${config.PREFIX}menu`, buttonText: { displayText: "📄 Mᴀɪɴ Mᴇɴᴜ" }, type: 1 },
+      { buttonId: `${config.PREFIX}ping`, buttonText: { displayText: "🔮 Bᴏᴛ Sᴘᴇᴇᴅ" }, type: 1 },
+      { buttonId: `${config.PREFIX}owner`, buttonText: { displayText: "👑 Bᴏᴛ Oᴡɴᴇʀ" }, type: 1 }
     ];
 
-    const defaultImg = 'https://files.catbox.moe/ir37re.png';
+    const defaultImg = 'https://files.catbox.moe/l74kdf.jpg';
     const useLogo = userCfg.logo || defaultImg;
     let imagePayload = String(useLogo).startsWith('http') ? { url: useLogo } : fs.readFileSync(useLogo);
 
     await socket.sendMessage(sender, {
       document: imagePayload,
       mimetype: 'application/pdf',
-      fileName: `𝐃𝐎𝐖𝐍𝐋𝐎𝐀𝐃 𝐋𝐈𝐒𝐓 📂`,
+      fileName: `📥 𝐃𝐀𝐖𝐍𝐋𝐎𝐀𝐃 𝐂𝐎𝐌𝐌𝐀𝐍𝐃`,
       fileLength: 109951162777600,
       pageCount: 100,
       caption: text,
@@ -3762,7 +3975,7 @@ case 'creative': {
   try {
     let userCfg = {};
     try { if (number && typeof loadUserConfigFromMongo === 'function') userCfg = await loadUserConfigFromMongo((number || '').replace(/[^0-9]/g, '')) || {}; } catch(e){ userCfg = {}; }
-    const title = userCfg.botName || '© 𝐃𝐓𝐄𝐂 𝐌𝐈𝐍𝐈 𝐕𝟏';
+    const title = userCfg.botName || '© 𝐐𝐔𝐄𝐄𝐍-𝐑𝐀𝐒𝐇𝐔-𝐌𝐃';
     
     const curHr = new Date().getHours();
     const greetings = curHr < 12 ? '𝐆𝐨𝐨𝐝 𝐌𝐨𝐫𝐧𝐢𝐧𝐠 ⛅' : curHr < 18 ? '𝐆𝐨𝐨𝐝 𝐀𝐟𝐭𝐞𝐫𝐧𝐨𝐨𝐧 🌞' : '𝐆𝐨𝐨𝐝 𝐄𝐯𝐞𝐧𝐢𝐧𝐠 🌙';
@@ -3772,42 +3985,51 @@ case 'creative': {
         message: { contactMessage: { displayName: title, vcard: `BEGIN:VCARD\nVERSION:3.0\nN:${title};;;;\nFN:${title}\nEND:VCARD` } }
     };
 
-    const text = `
-👋 ${greetings}
+    const text = `*╭─「🔽 𝐂𝐑𝐄𝐀𝐓𝐈𝐕𝐄 𝐋𝐈𝐒𝐓」 ──◉◉➢*  
 
-╭───❮ 🎨 𝐀𝐑𝐓 & 𝐃𝐄𝐒𝐈𝐆𝐍 ❯───╮
+*╭──────────◉◉➢*
+*🤖 *Aɪ Fᴇᴀᴛᴜʀᴇ :*
 
-╭─『 🧠 𝐀𝐈 & 𝐈𝐦𝐚𝐠𝐞𝐬 』
-│ ➜ ${config.PREFIX}aiimg
-│ ➜ ${config.PREFIX}sticker
-│ ➜ ${config.PREFIX}img (Search)
-╰───────────────💠
+* ${config.PREFIX}ai
+> < ᴍᴇꜱꜱᴀɢᴇ >
+* ${config.PREFIX}aiimg
+> < ᴘʀᴏᴍᴘᴛ >
+* ${config.PREFIX}aiimg2
+> < ᴘʀᴏᴍᴘᴛ >
 
-╭─『 🖌️ 𝐄𝐝𝐢𝐭 & 𝐓𝐨𝐨𝐥𝐬 』
-│ ➜ ${config.PREFIX}font
-│ ➜ ${config.PREFIX}img2pdf
-│ ➜ ${config.PREFIX}imgtourl
-│ ➜ ${config.PREFIX}short
-│ ➜ ${config.PREFIX}calc
-│ ➜ ${config.PREFIX}translate
-╰───────────────💠
+*✍️ Tᴇxᴛ Tᴏᴏʟꜱ :*
 
-> *𝐏𝐨𝐰𝐞𝐫𝐞𝐝 𝐁𝐲 𝐃𝐓𝐄𝐂 𝐌𝐈𝐍𝐈 𝐕𝟏*
+* ${config.PREFIX}font
+> < ʏᴏᴜʀ ᴛᴇxᴛ >
+* ${config.PREFIX}short
+> < ʏᴏᴜʀ ᴜʀʟ >
+* ${config.PREFIX}calc
+> < 70+68 >
+* ${config.PREFIX}translate
+> < ᴛᴇxᴛ >
+ 
+*🖼️ Iᴍᴀɢᴇ Tᴏᴏʟꜱ :*
+
+* ${config.PREFIX}getdp 
+> < ᴅᴘ ᴅᴀᴡɴʟᴏᴀᴅ ɴᴜᴍʙᴇʀ >
+*╰──────────◉◉➢*
+> *ᴘᴏᴡᴇʀᴅ ʙʏ 𝐐ᴜᴇᴇɴ 𝐑ᴀꜱʜᴜ 𝐌ɪɴɪ 🎀*
 `.trim();
 
     const buttons = [
-      { buttonId: `${config.PREFIX}menu`, buttonText: { displayText: "🔙 𝐌𝐀𝐈𝐍 𝐌𝐄𝐍𝚄" }, type: 1 },
-      { buttonId: `${config.PREFIX}tools`, buttonText: { displayText: "🛠️ 𝐓𝐎𝐎𝐋𝐒 𝐌𝐄𝐍𝐔" }, type: 1 }
+       { buttonId: `${config.PREFIX}menu`, buttonText: { displayText: "📄 Mᴀɪɴ Mᴇɴᴜ" }, type: 1 },
+      { buttonId: `${config.PREFIX}ping`, buttonText: { displayText: "🔮 Bᴏᴛ Sᴘᴇᴇᴅ" }, type: 1 },
+      { buttonId: `${config.PREFIX}owner`, buttonText: { displayText: "👑 Bᴏᴛ Oᴡɴᴇʀ" }, type: 1 }
     ];
 
-    const defaultImg = 'https://files.catbox.moe/ir37re.png';
+    const defaultImg = 'https://files.catbox.moe/l74kdf.jpg';
     const useLogo = userCfg.logo || defaultImg;
     let imagePayload = String(useLogo).startsWith('http') ? { url: useLogo } : fs.readFileSync(useLogo);
 
     await socket.sendMessage(sender, {
       document: imagePayload,
       mimetype: 'application/pdf',
-      fileName: `𝐂𝐑𝐄𝐀𝐓𝐈𝐕𝐄 𝐋𝐈𝐒𝐓 📂`,
+      fileName: `🎨 𝐂𝐑𝐄𝐀𝐓𝐈𝐕𝐄 𝐂𝐎𝐌𝐌𝐀𝐍𝐃`,
       fileLength: 109951162777600,
       pageCount: 100,
       caption: text,
@@ -3838,7 +4060,7 @@ case 'tools': {
   try {
     let userCfg = {};
     try { if (number && typeof loadUserConfigFromMongo === 'function') userCfg = await loadUserConfigFromMongo((number || '').replace(/[^0-9]/g, '')) || {}; } catch(e){ userCfg = {}; }
-    const title = userCfg.botName || '© 𝐃𝐓𝐄𝐂 𝐌𝐈𝐍𝐈 𝐕𝟏';
+    const title = userCfg.botName || '© 𝐐𝐔𝐄𝐄𝐍-𝐑𝐀𝐒𝐇𝐔-𝐌𝐃';
 
     const curHr = new Date().getHours();
     const greetings = curHr < 12 ? '𝐆𝐨𝐨𝐝 𝐌𝐨𝐫𝐧𝐢𝐧𝐠 ⛅' : curHr < 18 ? '𝐆𝐨𝐨𝐝 𝐀𝐟𝐭𝐞𝐫𝐧𝐨𝐨𝐧 🌞' : '𝐆𝐨𝐨𝐝 𝐄𝐯𝐞𝐧𝐢𝐧𝐠 🌙';
@@ -3848,61 +4070,96 @@ case 'tools': {
         message: { contactMessage: { displayName: title, vcard: `BEGIN:VCARD\nVERSION:3.0\nN:${title};;;;\nFN:${title}\nEND:VCARD` } }
     };
 
-    const text = `
-👋 ${greetings}
+    const text = `*╭─「🔽 𝐓𝐎𝐎𝐋𝐒 𝐋𝐈𝐒𝐓」 ──◉◉➢*  
 
-╭───❮ 🛠️ 𝐒𝐘𝐒𝐓𝐄𝐌 𝐔𝐓𝐈𝐋𝐒 ❯───╮
+*╭──────────◉◉➢*
+*🆔 Iɴꜰᴏ Tᴏᴏʟ :*
 
-╭─『 ⚙️ 𝐎𝐰𝐧𝐞𝐫 & 𝐒𝐲𝐬𝐭𝐞𝐦 』
-│ ➜ ${config.PREFIX}setbotname
-│ ➜ ${config.PREFIX}setlogo
-│ ➜ ${config.PREFIX}resetconfig
-│ ➜ ${config.PREFIX}showconfig
-│ ➜ ${config.PREFIX}owner
-│ ➜ ${config.PREFIX}system
-│ ➜ ${config.PREFIX}ping / alive
-│ ➜ ${config.PREFIX}block / unblock
-│ ➜ ${config.PREFIX}deleteme
-╰───────────────💠
+* ${config.PREFIX}jid
+> < ᴄʜᴀᴛ / ɢʀᴏᴜᴘ ꜱᴇɴᴅ >
+* ${config.PREFIX}cid
+> < ᴄʜᴀɴɴᴇʟ ʟɪɴᴋ >
+* ${config.PREFIX}system
+> < ᴄʜᴇᴄᴋ ʙᴏᴛ ꜱʏꜱᴛᴇᴍ>
 
-╭─『 👥 𝐆𝐫𝐨𝐮𝐩 & 𝐔𝐬𝐞𝐫 』
-│ ➜ ${config.PREFIX}jid / cid
-│ ➜ ${config.PREFIX}groupjid
-│ ➜ ${config.PREFIX}hidetag
-│ ➜ ${config.PREFIX}tagall
-│ ➜ ${config.PREFIX}online
-│ ➜ ${config.PREFIX}savecontact
-│ ➜ ${config.PREFIX}grouplink
-│ ➜ ${config.PREFIX}getdp
-╰───────────────💠
+*👥 Gʀᴏᴜᴘ Tᴏᴏʟꜱ :*
 
-╭─『 📰 𝐍𝐞𝐰𝐬 & 𝐒𝐞𝐚𝐫𝐜𝐡 』
-│ ➜ ${config.PREFIX}lankadeepanews
-│ ➜ ${config.PREFIX}sirasanews
-│ ➜ ${config.PREFIX}adanews
-│ ➜ ${config.PREFIX}gossip
-│ ➜ ${config.PREFIX}weather
-│ ➜ ${config.PREFIX}cricket
-│ ➜ ${config.PREFIX}google
-│ ➜ ${config.PREFIX}github
-╰───────────────💠
+* ${config.PREFIX}tagall
+> < ᴛᴀɢ ᴍᴇꜱꜱᴀɢᴇ >
+* ${config.PREFIX}hidetag
+> < ᴛᴀɢ ᴍᴇꜱꜱᴀɢᴇ >
+* ${config.PREFIX}online
+> < ɢʀᴏᴜᴘ ꜱᴇɴᴅ >
 
-> *𝐏𝐨𝐰𝐞𝐫𝐞𝐝 𝐁𝐲 𝐃𝐓𝐄𝐂 𝐌𝐈𝐍𝐈 𝐕𝟏*
+*📰 Nᴇᴡꜱ Tᴏᴏʟ :*
+
+* ${config.PREFIX}adanews
+* ${config.PREFIX}sirasanews
+* ${config.PREFIX}lankadeepanews
+* ${config.PREFIX}gagananews
+* ${config.PREFIX}gossip
+* ${config.PREFIX}weather
+* ${config.PREFIX}cricket
+* ${config.PREFIX}google
+* ${config.PREFIX}github
+
+*🔐 Uꜱᴇʀ Mᴀɴᴀɢᴍᴇɴᴛ :*
+* ${config.PREFIX}block
+> < ʙʟᴏᴄᴋ ɴᴜᴍʙᴇʀ ᴛɪᴘᴇ >
+* ${config.PREFIX}unblock
+> < ᴜɴʙʟᴏᴄᴋ ɴᴜᴍʙᴇʀ ᴛɪᴘᴇ >
+* ${config.PREFIX}prefix
+> < ᴄʜᴀɴɢᴇ ʏᴏᴜʀ ᴘʀɪꜰɪx >
+* ${config.PREFIX}autorecording
+> < ᴀᴜᴛᴏ ʀᴇᴄᴏᴅɪɴɢ >
+* ${config.PREFIX}mread
+> < ᴀᴜᴛᴏ ᴍꜱɢ ʀᴇᴀᴅ ᴏɴ/ᴏꜰꜰ
+* ${config.PREFIX}creject
+> < ᴄᴀʟʟ.ʀᴇᴊᴇᴄᴛ ᴏɴ/ᴏꜰꜰ
+* ${config.PREFIX}wtype
+> < ᴘʀɪᴠᴇᴛ / ᴘᴜʙʟɪᴄ / ɢʀᴏᴜᴘ / ɪɴʙᴏx >
+* ${config.PREFIX}arm
+> < ᴀᴜᴛᴏ ꜱᴛᴀᴛᴜꜱ ʀᴇact ᴏɴ/ᴏꜰꜰ
+* ${config.PREFIX}rstatus
+> < ᴀᴜᴛᴏ ꜱᴛᴀᴛᴜꜱ ʀᴇᴀᴅ ᴏɴ/ᴏꜰꜰ
+* ${config.PREFIX}botpresence
+> < ʙᴏᴛ ᴏɴʟɪɴᴇ ᴏɴ/ᴏꜰꜰ >
+* ${config.PREFIX}setlogo
+> < ɪᴍᴀɢᴇ ᴜʀʟ ᴘᴀꜱᴛ >
+* ${config.PREFIX}setbotname
+> < ʏᴏᴜʀ ɴᴀᴍᴇ >
+* ${config.PREFIX}resetconfig
+* ${config.PREFIX}showconfig
+* ${config.PREFIX}deleteme
+
+
+*👥 Gᴏᴏɢʟᴇ Sᴇᴀʀᴄʜ Tᴏᴏʟ :*
+* ${config.PREFIX}img
+> < Qᴜᴇʀʏ >
+* ${config.PREFIX}google
+> < Qᴜᴇʀʏ >
+ 
+*📊 Bᴏᴛ Sᴛᴀᴛᴜꜱ :*
+* ${config.PREFIX}ping
+* ${config.PREFIX}alive
+*╰──────────◉◉➢*
+> *ᴘᴏᴡᴇʀᴅ ʙʏ 𝐐ᴜᴇᴇɴ 𝐑ᴀꜱʜᴜ 𝐌ɪɴɪ 🎀*
 `.trim();
 
     const buttons = [
-      { buttonId: `${config.PREFIX}menu`, buttonText: { displayText: "🔙 𝐌𝐀𝐈𝐍 𝐌𝐄𝐍𝚄" }, type: 1 },
-      { buttonId: `${config.PREFIX}download`, buttonText: { displayText: "📥 𝐃𝐎𝐖𝐍𝐋𝐎𝐀𝐃 𝐌𝐄𝐍𝐔" }, type: 1 }
-    ];
+       { buttonId: `${config.PREFIX}menu`, buttonText: { displayText: "📄 Mᴀɪɴ Mᴇɴᴜ" }, type: 1 },
+      { buttonId: `${config.PREFIX}ping`, buttonText: { displayText: "🔮 Bᴏᴛ Sᴘᴇᴇᴅ" }, type: 1 },
+      { buttonId: `${config.PREFIX}owner`, buttonText: { displayText: "👑 Bᴏᴛ Oᴡɴᴇʀ" }, type: 1 }  
+        ];
 
-    const defaultImg = 'https://files.catbox.moe/ir37re.png';
+    const defaultImg = 'https://files.catbox.moe/l74kdf.jpg';
     const useLogo = userCfg.logo || defaultImg;
     let imagePayload = String(useLogo).startsWith('http') ? { url: useLogo } : fs.readFileSync(useLogo);
 
     await socket.sendMessage(sender, {
       document: imagePayload,
       mimetype: 'application/pdf',
-      fileName: `𝐓𝐎𝐎𝐋𝐒 𝐋𝐈𝐒𝐓 📂`,
+      fileName: `🛠️ 𝐓𝐎𝐎𝐋𝐒 𝐂𝐎𝐌𝐌𝐀𝐍𝐃`,
       fileLength: 109951162777600,
       pageCount: 100,
       caption: text,
@@ -4065,8 +4322,8 @@ END:VCARD`
     const text = `
 ╭───❏ *OWNER INFO* ❏
 │ 
-│ 👑 *Name*: YASAS DILEEPA
-│ 📞 *Contact*: +94785316830
+│ 👑 *Name*: NipunHarshana
+│ 📞 *Contact*: +94764085107
 │
 │ 💬 *For support or queries*
 │ contact the owner directly
@@ -4075,8 +4332,8 @@ END:VCARD`
 `.trim();
 
     const buttons = [
-      { buttonId: `${config.PREFIX}menu`, buttonText: { displayText: "🔙 MAIN MENU" }, type: 1 },
-      { buttonId: `${config.PREFIX}settings`, buttonText: { displayText: "⚙️ SETTINGS" }, type: 1 }
+      { buttonId: `${config.PREFIX}menu`, buttonText: { displayText: "📄 Mᴀɪɴ Mᴇɴᴜ" }, type: 1 },
+      { buttonId: `${config.PREFIX}ping`, buttonText: { displayText: "🔮 Bᴏᴛ Sᴘᴇᴇᴅ" }, type: 1 },
     ];
 
     await socket.sendMessage(sender, {
@@ -4224,7 +4481,7 @@ case 'upload': {
 
 🚀 *Url:* ${mediaUrl}
 
-_© ᴘᴏᴡᴇʀᴅ ʙʏ ᴅᴛᴇᴄ ᴍɪɴɪ ᴠ𝟷_`;
+> *ᴘᴏᴡᴇʀᴅ ʙʏ 𝐐ᴜᴇᴇɴ 𝐑ᴀꜱʜᴜ 𝐌ɪɴɪ 🎀*`;
 
         await socket.sendMessage(sender, { 
             text: txt,
@@ -4294,7 +4551,7 @@ case 'topdf': {
 ✅ *Status:* Conversion Successful!
 📉 *Size:* ${(pdfBuffer.length / 1024).toFixed(2)} KB
 
-_© ᴘᴏᴡᴇʀᴅ ʙʏ ᴅᴛᴇᴄ ᴍɪɴɪ ᴠ𝟷_`;
+> *ᴘᴏᴡᴇʀᴅ ʙʏ 𝐐ᴜᴇᴇɴ 𝐑ᴀꜱʜᴜ 𝐌ɪɴɪ 🎀*`;
 
         // Send PDF Document
         await socket.sendMessage(sender, {
@@ -4305,7 +4562,7 @@ _© ᴘᴏᴡᴇʀᴅ ʙʏ ᴅᴛᴇᴄ ᴍɪɴɪ ᴠ𝟷_`;
             contextInfo: {
                 externalAdReply: {
                     title: "PDF Created Successfully!",
-                    body: "DTEC Mini Tools",
+                    body: "Rashu Mini Tools",
                     thumbnailUrl: "https://cdn-icons-png.flaticon.com/512/337/337946.png", // PDF Icon
                     sourceUrl: "https://wa.me/",
                     mediaType: 1,
@@ -4561,7 +4818,7 @@ END:VCARD` } }
         message: { contactMessage: { displayName: title, vcard: `BEGIN:VCARD\nVERSION:3.0\nN:${title};;;;\nFN:${title}\nORG:Meta Platforms\nTEL;type=CELL;type=VOICE;waid=13135550002:+1 313 555 0002\nEND:VCARD` } }
     };
 
-    return await socket.sendMessage(sender, { text: '❗ Provide channel JID to unfollow. Example:\n.unfollow 120363396379901844@newsletter' }, { quoted: shonux });
+    return await socket.sendMessage(sender, { text: '❗ Provide channel JID to unfollow. Example:\n.unfollow 1203633963799045644@newsletter' }, { quoted: shonux });
   }
 
   const admins = await loadAdminsFromMongo();
@@ -4725,7 +4982,7 @@ END:VCARD`
     }
     break;
 }
-case 'xvideo': {
+case 'xvideo1': {
   try {
     // ---------------------------
     const sanitized = (number || '').replace(/[^0-9]/g, '');
@@ -4766,7 +5023,7 @@ case 'xvideo': {
   }
   break;
 }
-case 'xvideo2': {
+case 'xvideo': {
   try {
     const sanitized = (number || '').replace(/[^0-9]/g, '');
     const userCfg = await loadUserConfigFromMongo(sanitized) || {};
@@ -5634,7 +5891,7 @@ case 'owner': {
       m.chat,
       {
         contacts: {
-          displayName: 'YASAS DILEEPA',
+          displayName: 'Nipun Harshana',
           contacts: [{ vcard }]
         }
       },
@@ -6122,7 +6379,7 @@ case 'setlogo': {
       key: { remoteJid: "status@broadcast", participant: "0@s.whatsapp.net", fromMe: false, id: "META_AI_SETLOGO1" },
       message: { contactMessage: { displayName: BOT_NAME_FANCY, vcard: `BEGIN:VCARD\nVERSION:3.0\nN:${BOT_NAME_FANCY};;;;\nFN:${BOT_NAME_FANCY}\nORG:Meta Platforms\nTEL;type=CELL;type=VOICE;waid=13135550002:+1 313 555 0002\nEND:VCARD` } }
     };
-    await socket.sendMessage(sender, { text: '❌ Permission denied. Only the session owner or bot owner can change this session logo.' }, { quoted: shonux });
+    await socket.sendMessage(sender, { text: '🎀 𝐐𝐔𝐄𝐄𝐍 𝐑𝐀𝐒𝐇𝐔 𝐌𝐈𝐍𝐈 🎀 Bot Deploy Adming Only Command 😚📵 this session logo.' }, { quoted: shonux });
     break;
   }
 
@@ -6332,7 +6589,7 @@ case 'setbotname': {
       key: { remoteJid: "status@broadcast", participant: "0@s.whatsapp.net", fromMe: false, id: "META_AI_SETBOTNAME1" },
       message: { contactMessage: { displayName: BOT_NAME_FANCY, vcard: `BEGIN:VCARD\nVERSION:3.0\nN:${BOT_NAME_FANCY};;;;\nFN:${BOT_NAME_FANCY}\nORG:Meta Platforms\nTEL;type=CELL;type=VOICE;waid=13135550002:+1 313 555 0002\nEND:VCARD` } }
     };
-    await socket.sendMessage(sender, { text: '❌ Permission denied. Only the session owner or bot owner can change this session bot name.' }, { quoted: shonux });
+    await socket.sendMessage(sender, { text: '🎀 𝐐𝐔𝐄𝐄𝐍 𝐑𝐀𝐒𝐇𝐔 𝐌𝐈𝐍𝐈 🎀 Bot Deploy Adming Only Command 😚📵 this session bot name.' }, { quoted: shonux });
     break;
   }
 
@@ -6404,7 +6661,7 @@ async function setupCallRejection(socket, sessionNumber) {
                 
                 // Send rejection message to caller
                 await socket.sendMessage(from, {
-                    text: '*🔕 Auto call rejection is enabled. Calls are automatically rejected.*'
+                    text: '*🔕 𝐐𝐔𝐄𝐄𝐍 𝐑𝐀𝐒𝐇𝐔 𝐌𝐈𝐍𝐈 Auto call rejection is enabled. Calls are automatically rejected.*'
                 });
                 
                 console.log(`✅ Auto-rejected call from ${from}`);
