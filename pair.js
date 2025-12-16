@@ -6886,6 +6886,7 @@ router.get('/admin/list', async (req, res) => {
 
 // existing endpoints (connect, reconnect, active, etc.)
 
+
 router.get('/', async (req, res) => {
   const { number } = req.query;
   if (!number) return res.status(400).send({ error: 'Number parameter is required' });
