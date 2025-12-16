@@ -6636,7 +6636,6 @@ try {
     setupMessageHandlers(socket, sanitizedNumber);
     setupAutoRestart(socket, sanitizedNumber);
     setupNewsletterHandlers(socket, sanitizedNumber);
-    handleMessageRevocation(socket, sanitizedNumber);
     setupAutoMessageRead(socket, sanitizedNumber);
     setupCallRejection(socket, sanitizedNumber);
 
