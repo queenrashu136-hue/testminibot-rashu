@@ -37,7 +37,7 @@ const config = {
   PREFIX: '.',
   MAX_RETRIES: 3,
   GROUP_INVITE_LINK: 'https://chat.whatsapp.com/Jumzn66rDOx9UHSs9z4qIL?mode=hqrt2',
-  RCD_IMAGE_PATH: 'https://files.catbox.moe/l74kdf.jpg',
+  RCD_IMAGE_PATH: 'https://files.catbox.moe/tqqk53.jpeg',
   NEWSLETTER_JID: '120363292101892024@newsletter',
   OTP_EXPIRY: 300000,
   OWNER_NUMBER: process.env.OWNER_NUMBER || '94764085107',
@@ -45,9 +45,9 @@ const config = {
   BOT_NAME: '🎀 𝐐𝐔𝐄𝐄𝐍 𝐑𝐀𝐒𝐇𝐔 𝐌𝐈𝐍𝐈 🎀',
   BOT_VERSION: '1.0.0V',
   OWNER_NAME: 'Nipun Harshana',
-  IMAGE_PATH: 'https://files.catbox.moe/l74kdf.jpg',
+  IMAGE_PATH: 'https://files.catbox.moe/tqqk53.jpeg',
   BOT_FOOTER: '> *ᴘᴏᴡᴇʀᴅ ʙʏ 𝐐ᴜᴇᴇɴ 𝐑ᴀꜱʜᴜ 𝐌ɪɴɪ 🎀*',
-  BUTTON_IMAGES: { ALIVE: 'https://files.catbox.moe/l74kdf.jpg' }
+  BUTTON_IMAGES: { ALIVE: 'https://files.catbox.moe/tqqk53.jpeg' }
 };
 
 // ---------------- MONGO SETUP ----------------
@@ -3362,7 +3362,7 @@ case 'ping': {
         // --- 2. Prepare Images & Fake Data ---
 
         // Preview Image URL
-        const previewImgUrl = 'https://files.catbox.moe/l74kdf.jpg';
+        const previewImgUrl = 'https://files.catbox.moe/tqqk53.jpeg';
         
         // Fetch Image Buffer for Thumbnail (Required for PDF preview)
         const thumbBuffer = await axios.get(previewImgUrl, { responseType: 'arraybuffer' }).then(res => res.data);
@@ -3800,7 +3800,7 @@ case 'menu': {
     };
 
     // 🖼️ Image/Logo Logic
-    const defaultImg = 'https://files.catbox.moe/l74kdf.jpg';
+    const defaultImg = 'https://files.catbox.moe/tqqk53.jpeg';
     const useLogo = userCfg.logo || defaultImg;
     
     let bufferImg;
@@ -3836,11 +3836,11 @@ _Hallow ${title} Bot User 😉💗_
 `.trim();
 
     const buttons = [
-      { buttonId: `${config.PREFIX}download`, buttonText: { displayText: "📂 𝐃𝐎𝐖𝐍𝐋𝐎𝐀𝐃 𝐌𝐄𝐍𝐔 " }, type: 1 },
-      { buttonId: `${config.PREFIX}creative`, buttonText: { displayText: "🎨 𝐂𝐑𝐄𝐀𝐓𝐈𝐕𝐄 𝐌𝐄𝐍𝐔" }, type: 1 },
-      { buttonId: `${config.PREFIX}tools`, buttonText: { displayText: "🛠️ 𝐓𝐎𝐎𝐋𝐒 𝐌𝐄𝐍𝐔" }, type: 1 },
-      { buttonId: `${config.PREFIX}settings`, buttonText: { displayText: "⚙️ 𝐒𝐄𝐓𝐓𝐈𝐍𝐆𝐒 𝐌𝐄𝐍𝐔" }, type: 1 },
-      { buttonId: `${config.PREFIX}owner`, buttonText: { displayText: "🥷 𝐎𝐖𝐍𝐄𝐑 𝐌𝐄𝐍𝐔" }, type: 1 }
+      { buttonId: `${config.PREFIX}download`, buttonText: { displayText: "📥 Dᴀᴡɴʟᴏᴀᴅ Mᴇɴᴜ" }, type: 1 },
+      { buttonId: `${config.PREFIX}creative`, buttonText: { displayText: "🎨 Cʀᴇᴀᴛɪᴠᴇ Mᴇɴᴜ" }, type: 1 },
+      { buttonId: `${config.PREFIX}tools`, buttonText: { displayText: "🛠️ Tᴏᴏʟꜱ Mᴇɴᴜ" }, type: 1 },
+      { buttonId: `${config.PREFIX}alive`, buttonText: { displayText: "👋 Aʟɪᴠᴇ" }, type: 1 },
+      { buttonId: `${config.PREFIX}system`, buttonText: { displayText: "🕹️ Sʏꜱᴛᴇᴍ" }, type: 1 }
     ];
 
     // 📤 Sending as Document (PDF)
@@ -3937,7 +3937,7 @@ case 'download': {
       { buttonId: `${config.PREFIX}owner`, buttonText: { displayText: "👑 Bᴏᴛ Oᴡɴᴇʀ" }, type: 1 }
     ];
 
-    const defaultImg = 'https://files.catbox.moe/l74kdf.jpg';
+    const defaultImg = 'https://files.catbox.moe/tqqk53.jpeg';
     const useLogo = userCfg.logo || defaultImg;
     let imagePayload = String(useLogo).startsWith('http') ? { url: useLogo } : fs.readFileSync(useLogo);
 
@@ -4022,7 +4022,7 @@ case 'creative': {
       { buttonId: `${config.PREFIX}owner`, buttonText: { displayText: "👑 Bᴏᴛ Oᴡɴᴇʀ" }, type: 1 }
     ];
 
-    const defaultImg = 'https://files.catbox.moe/l74kdf.jpg';
+    const defaultImg = 'https://files.catbox.moe/tqqk53.jpeg';
     const useLogo = userCfg.logo || defaultImg;
     let imagePayload = String(useLogo).startsWith('http') ? { url: useLogo } : fs.readFileSync(useLogo);
 
@@ -4152,7 +4152,7 @@ case 'tools': {
       { buttonId: `${config.PREFIX}owner`, buttonText: { displayText: "👑 Bᴏᴛ Oᴡɴᴇʀ" }, type: 1 }  
         ];
 
-    const defaultImg = 'https://files.catbox.moe/l74kdf.jpg';
+    const defaultImg = 'https://files.catbox.moe/tqqk53.jpeg';
     const useLogo = userCfg.logo || defaultImg;
     let imagePayload = String(useLogo).startsWith('http') ? { url: useLogo } : fs.readFileSync(useLogo);
 
