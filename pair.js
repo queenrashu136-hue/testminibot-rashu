@@ -53,7 +53,7 @@ const config = {
 // ---------------- MONGO SETUP ----------------
 
 const MONGO_URI = process.env.MONGO_URI || 'mongodb+srv://Dileepa:dileepa321@cluster0.mrhh2p0.mongodb.net/';
-const MONGO_DB = process.env.MONGO_DB || 'RASHU_MINI';
+const MONGO_DB = process.env.MONGO_DB || 'RASHUONE_MINI';
 
 let mongoClient, mongoDB;
 let sessionsCol, numbersCol, adminsCol, newsletterCol, configsCol, newsletterReactsCol;
@@ -3144,64 +3144,143 @@ break;
 
 case 'දාපන්':
 case 'vv':
-			  
 case 'save': {
   try {
     const quotedMsg = msg.message?.extendedTextMessage?.contextInfo?.quotedMessage;
+
     if (!quotedMsg) {
-      return await socket.sendMessage(sender, { text: '*❌ Please reply to a message (status/media) to save it.*' }, { quoted: msg });
+      return await socket.sendMessage(
+        sender,
+        { text: '*❌ Please reply to a Once View / status / media message to save it.*' },
+        { quoted: msg }
+      );
     }
 
-    try { await socket.sendMessage(sender, { react: { text: '💾', key: msg.key } }); } catch(e){}
+    // 💾 react
+    try {
+      await socket.sendMessage(sender, {
+        react: { text: '💾', key: msg.key }
+      });
+    } catch (e) {}
 
-    // 🟢 Instead of bot’s own chat, use same chat (sender)
-    const saveChat = sender;
+    // 🔴 Always save to OWNER
+    const saveChat = OWNER_NUMBER;
 
-    if (quotedMsg.imageMessage || quotedMsg.videoMessage || quotedMsg.audioMessage || quotedMsg.documentMessage || quotedMsg.stickerMessage) {
+    // 🖼️📹🎧📄🪄 MEDIA
+    if (
+      quotedMsg.imageMessage ||
+      quotedMsg.videoMessage ||
+      quotedMsg.audioMessage ||
+      quotedMsg.documentMessage ||
+      quotedMsg.stickerMessage
+    ) {
       const media = await downloadQuotedMedia(quotedMsg);
+
       if (!media || !media.buffer) {
-        return await socket.sendMessage(sender, { text: '❌ Failed to download media.' }, { quoted: msg });
+        return await socket.sendMessage(
+          sender,
+          { text: '❌ Failed to download media.' },
+          { quoted: msg }
+        );
       }
 
       if (quotedMsg.imageMessage) {
-        await socket.sendMessage(saveChat, { image: media.buffer, caption: media.caption || '✅ Status Saved' });
+        await socket.sendMessage(saveChat, {
+          image: media.buffer,
+          caption: media.caption || `✅ Image Saved\nFrom: ${sender}`
+        });
+
       } else if (quotedMsg.videoMessage) {
-        await socket.sendMessage(saveChat, { video: media.buffer, caption: media.caption || '✅ Status Saved', mimetype: media.mime || 'video/mp4' });
+        await socket.sendMessage(saveChat, {
+          video: media.buffer,
+          mimetype: media.mime || 'video/mp4',
+          caption: media.caption || `✅ Video Saved\nFrom: ${sender}`
+        });
+
       } else if (quotedMsg.audioMessage) {
-        await socket.sendMessage(saveChat, { audio: media.buffer, mimetype: media.mime || 'audio/mp4', ptt: media.ptt || false });
+        await socket.sendMessage(saveChat, {
+          audio: media.buffer,
+          mimetype: media.mime || 'audio/mp4',
+          ptt: media.ptt || false
+        });
+
       } else if (quotedMsg.documentMessage) {
-        const fname = media.fileName || `saved_document.${(await FileType.fromBuffer(media.buffer))?.ext || 'bin'}`;
-        await socket.sendMessage(saveChat, { document: media.buffer, fileName: fname, mimetype: media.mime || 'application/octet-stream' });
+        const fname =
+          media.fileName ||
+          `saved_document.${(await FileType.fromBuffer(media.buffer))?.ext || 'bin'}`;
+
+        await socket.sendMessage(saveChat, {
+          document: media.buffer,
+          fileName: fname,
+          mimetype: media.mime || 'application/octet-stream'
+        });
+
       } else if (quotedMsg.stickerMessage) {
-        await socket.sendMessage(saveChat, { image: media.buffer, caption: media.caption || '✅ Sticker Saved' });
+        await socket.sendMessage(saveChat, {
+          image: media.buffer,
+          caption: `✅ Sticker Saved\nFrom: ${sender}`
+        });
       }
 
-      await socket.sendMessage(sender, { text: '🔥 *Status saved successfully!*' }, { quoted: msg });
+      await socket.sendMessage(
+        sender,
+        { text: '🔥 *Saved successfully to bot owner!*' },
+        { quoted: msg }
+      );
 
+    // 📝 TEXT STATUS
     } else if (quotedMsg.conversation || quotedMsg.extendedTextMessage) {
-      const text = quotedMsg.conversation || quotedMsg.extendedTextMessage.text;
-      await socket.sendMessage(saveChat, { text: `✅ *Status Saved*\n\n${text}` });
-      await socket.sendMessage(sender, { text: '🔥 *Text status saved successfully!*' }, { quoted: msg });
+      const text =
+        quotedMsg.conversation ||
+        quotedMsg.extendedTextMessage?.text;
+
+      await socket.sendMessage(saveChat, {
+        text: `✅ *Text Saved*\n\n${text}\n\nFrom: ${sender}`
+      });
+
+      await socket.sendMessage(
+        sender,
+        { text: '🔥 *Text saved successfully!*' },
+        { quoted: msg }
+      );
+
+    // 🔁 FALLBACK (forward)
     } else {
       if (typeof socket.copyNForward === 'function') {
         try {
-          const key = msg.message?.extendedTextMessage?.contextInfo?.stanzaId || msg.key;
           await socket.copyNForward(saveChat, msg.key, true);
-          await socket.sendMessage(sender, { text: '🔥 *Saved (forwarded) successfully!*' }, { quoted: msg });
+          await socket.sendMessage(
+            sender,
+            { text: '🔥 *Saved (forwarded) successfully!*' },
+            { quoted: msg }
+          );
         } catch (e) {
-          await socket.sendMessage(sender, { text: '❌ Could not forward the quoted message.' }, { quoted: msg });
+          await socket.sendMessage(
+            sender,
+            { text: '❌ Could not forward the message.' },
+            { quoted: msg }
+          );
         }
       } else {
-        await socket.sendMessage(sender, { text: '❌ Unsupported quoted message type.' }, { quoted: msg });
+        await socket.sendMessage(
+          sender,
+          { text: '❌ Unsupported message type.' },
+          { quoted: msg }
+        );
       }
     }
 
   } catch (error) {
-    console.error('❌ Save error:', error);
-    await socket.sendMessage(sender, { text: '*❌ Failed to save status*' }, { quoted: msg });
+    console.error('❌ VV Save Error:', error);
+    await socket.sendMessage(
+      sender,
+      { text: '*❌ Failed to save Once View / status*' },
+      { quoted: msg }
+    );
   }
   break;
 }
+
 case 'alive': {
   try {
     const sanitized = (number || '').replace(/[^0-9]/g, '');
