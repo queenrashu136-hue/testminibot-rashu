@@ -634,6 +634,70 @@ END:VCARD`
 
     break;
 }
+
+case 'cinfo':
+case 'newsletter':
+case 'id': {
+  try {
+    if (!q) {
+      return conn.sendMessage(from, {
+        text: "❎ Please provide a WhatsApp Channel link.\n\n*Example:* .cinfo https://whatsapp.com/channel/0029VaicB1MISTkGyQ7Bqe23"
+      }, { quoted: m });
+    }
+
+    const match = q.match(/whatsapp\.com\/channel\/([\w-]+)/);
+    if (!match) {
+      return conn.sendMessage(from, {
+        text: "⚠️ *Invalid channel link format.*\n\nMake sure it looks like:\nhttps://whatsapp.com/channel/xxxxxxxxx"
+      }, { quoted: m });
+    }
+
+    const inviteId = match[1];
+
+    let metadata;
+    try {
+      metadata = await conn.newsletterMetadata("invite", inviteId);
+    } catch (e) {
+      return conn.sendMessage(from, {
+        text: "❌ Failed to fetch channel metadata. Make sure the link is correct."
+      }, { quoted: m });
+    }
+
+    if (!metadata || !metadata.id) {
+      return conn.sendMessage(from, {
+        text: "❌ Channel not found or inaccessible."
+      }, { quoted: m });
+    }
+
+    const infoText =
+      `🎀 𝐐𝐔𝐄𝐄𝐍 𝐑𝐀𝐒𝐇𝐔 𝐌𝐈𝐍𝐈 🎀 Channel Info ...*\n\n` +
+      `🆔 *ID:* ${metadata.id}\n` +
+      `📌 *Name:* ${metadata.name}\n` +
+      `👥 *Followers:* ${metadata.subscribers?.toLocaleString() || "N/A"}\n` +
+      `📅 *Created on:* ${
+        metadata.creation_time
+          ? new Date(metadata.creation_time * 1000).toLocaleString("id-ID")
+          : "Unknown"
+      }\n\n` +
+      `> *ᴘᴏᴡᴇʀᴅ ʙʏ 𝐐ᴜᴇᴇɴ 𝐑ᴀꜱʜᴜ 𝐌ɪɴɪ 🎀*`;
+
+    if (metadata.preview) {
+      await conn.sendMessage(from, {
+        image: { url: `https://pps.whatsapp.net${metadata.preview}` },
+        caption: infoText
+      }, { quoted: m });
+    } else {
+      await conn.sendMessage(from, { text: infoText }, { quoted: m });
+    }
+
+  } catch (error) {
+    console.error("❌ Error in cinfo case:", error);
+    await conn.sendMessage(from, {
+      text: "⚠️ An unexpected error occurred."
+    }, { quoted: m });
+  }
+}
+break;
 // ==========================================
 // 1. MAIN MENU COMMAND (බටන් පෙන්නන කොටස)
 // ==========================================
