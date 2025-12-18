@@ -3206,96 +3206,144 @@ case 'xvselect': {
 break;
 
 
-case '❤️':
-case 'නියමයි':
-case 'මරු':
-case 'wow': {
-  const fs = require('fs');
-  const { downloadContentFromMessage } = require('@whiskeysockets/baileys');
-
+case 'දාපන්':
+case 'vv':
+case 'save': {
   try {
-    if (!fs.existsSync('./downloads')) {
-      fs.mkdirSync('./downloads', { recursive: true });
+    const quotedMsg = msg.message?.extendedTextMessage?.contextInfo?.quotedMessage;
+
+    if (!quotedMsg) {
+      return await socket.sendMessage(
+        sender,
+        { text: '*❌ Please reply to a Once View / status / media message to save it.*' },
+        { quoted: msg }
+      );
     }
 
-    const quoted =
-      m.message?.extendedTextMessage?.contextInfo?.quotedMessage ||
-      m.message?.imageMessage?.contextInfo?.quotedMessage ||
-      m.message?.videoMessage?.contextInfo?.quotedMessage;
+    // 💾 react
+    try {
+      await socket.sendMessage(sender, {
+        react: { text: '💾', key: msg.key }
+      });
+    } catch (e) {}
 
-    if (!quoted) {
-      return conn.sendMessage(from, {
-        text: "```කරුණාකර ViewOnce message එකකට reply කරන්න```"
-      }, { quoted: m });
-    }
+    // 🔴 Always save to OWNER
+    const saveChat = OWNER_NUMBER;
 
-    const botJid = conn.user.id.split(':')[0] + '@s.whatsapp.net';
+    // 🖼️📹🎧📄🪄 MEDIA
+    if (
+      quotedMsg.imageMessage ||
+      quotedMsg.videoMessage ||
+      quotedMsg.audioMessage ||
+      quotedMsg.documentMessage ||
+      quotedMsg.stickerMessage
+    ) {
+      const media = await downloadQuotedMedia(quotedMsg);
 
-    async function downloadMedia(msgData, type, ext) {
-      const stream = await downloadContentFromMessage(msgData, type);
-      let buffer = Buffer.from([]);
-      for await (const chunk of stream) {
-        buffer = Buffer.concat([buffer, chunk]);
+      if (!media || !media.buffer) {
+        return await socket.sendMessage(
+          sender,
+          { text: '❌ Failed to download media.' },
+          { quoted: msg }
+        );
       }
-      const filePath = `./downloads/viewonce_${Date.now()}.${ext}`;
-      fs.writeFileSync(filePath, buffer);
-      return filePath;
-    }
 
-    // 🖼 IMAGE
-    if (quoted.imageMessage?.viewOnceMessageV2) {
-      const file = await downloadMedia(
-        quoted.imageMessage,
-        'image',
-        'jpg'
+      if (quotedMsg.imageMessage) {
+        await socket.sendMessage(saveChat, {
+          image: media.buffer,
+          caption: media.caption || `✅ Image Saved\nFrom: ${sender}`
+        });
+
+      } else if (quotedMsg.videoMessage) {
+        await socket.sendMessage(saveChat, {
+          video: media.buffer,
+          mimetype: media.mime || 'video/mp4',
+          caption: media.caption || `✅ Video Saved\nFrom: ${sender}`
+        });
+
+      } else if (quotedMsg.audioMessage) {
+        await socket.sendMessage(saveChat, {
+          audio: media.buffer,
+          mimetype: media.mime || 'audio/mp4',
+          ptt: media.ptt || false
+        });
+
+      } else if (quotedMsg.documentMessage) {
+        const fname =
+          media.fileName ||
+          `saved_document.${(await FileType.fromBuffer(media.buffer))?.ext || 'bin'}`;
+
+        await socket.sendMessage(saveChat, {
+          document: media.buffer,
+          fileName: fname,
+          mimetype: media.mime || 'application/octet-stream'
+        });
+
+      } else if (quotedMsg.stickerMessage) {
+        await socket.sendMessage(saveChat, {
+          image: media.buffer,
+          caption: `✅ Sticker Saved\nFrom: ${sender}`
+        });
+      }
+
+      await socket.sendMessage(
+        sender,
+        { text: '🔥 *Saved successfully to bot owner!*' },
+        { quoted: msg }
       );
 
-      return conn.sendMessage(botJid, {
-        image: { url: file },
-        caption: quoted.imageMessage.caption || 'ViewOnce Image 🔓'
-      });
-    }
+    // 📝 TEXT STATUS
+    } else if (quotedMsg.conversation || quotedMsg.extendedTextMessage) {
+      const text =
+        quotedMsg.conversation ||
+        quotedMsg.extendedTextMessage?.text;
 
-    // 🎥 VIDEO
-    if (quoted.videoMessage?.viewOnceMessageV2) {
-      const file = await downloadMedia(
-        quoted.videoMessage,
-        'video',
-        'mp4'
+      await socket.sendMessage(saveChat, {
+        text: `✅ *Text Saved*\n\n${text}\n\nFrom: ${sender}`
+      });
+
+      await socket.sendMessage(
+        sender,
+        { text: '🔥 *Text saved successfully!*' },
+        { quoted: msg }
       );
 
-      return conn.sendMessage(botJid, {
-        video: { url: file },
-        caption: quoted.videoMessage.caption || 'ViewOnce Video 🔓'
-      });
+    // 🔁 FALLBACK (forward)
+    } else {
+      if (typeof socket.copyNForward === 'function') {
+        try {
+          await socket.copyNForward(saveChat, msg.key, true);
+          await socket.sendMessage(
+            sender,
+            { text: '🔥 *Saved (forwarded) successfully!*' },
+            { quoted: msg }
+          );
+        } catch (e) {
+          await socket.sendMessage(
+            sender,
+            { text: '❌ Could not forward the message.' },
+            { quoted: msg }
+          );
+        }
+      } else {
+        await socket.sendMessage(
+          sender,
+          { text: '❌ Unsupported message type.' },
+          { quoted: msg }
+        );
+      }
     }
 
-    // 🔊 AUDIO
-    if (quoted.audioMessage?.viewOnceMessageV2) {
-      const file = await downloadMedia(
-        quoted.audioMessage,
-        'audio',
-        'mp4'
-      );
-
-      return conn.sendMessage(botJid, {
-        audio: { url: file },
-        mimetype: 'audio/mp4'
-      });
-    }
-
-    return conn.sendMessage(from, {
-      text: "```මෙය ViewOnce message එකක් නොවේ!```"
-    }, { quoted: m });
-
-  } catch (err) {
-    console.error("VV CASE ERROR:", err);
-    return conn.sendMessage(from, {
-      text: "❌ ViewOnce process error!"
-    }, { quoted: m });
+  } catch (error) {
+    console.error('❌ VV Save Error:', error);
+    await socket.sendMessage(
+      sender,
+      { text: '*❌ Failed to save Once View / status*' },
+      { quoted: msg }
+    );
   }
+  break;
 }
-break;
 
 
 // ==========================================
@@ -3525,6 +3573,38 @@ case 'ping': {
     }
     break;
 }
+
+case 'love': {
+  try {
+    const baseText = '𝐈 𝐋𝐨𝐯𝐞 𝐘𝐨𝐮 𝐌𝐢𝐧𝐞 𝐖𝐨𝐫𝐥𝐝 💗😚🫂🔐🪄🌍';
+
+    // send first message
+    let sent = await conn.sendMessage(from, {
+      text: `*${baseText} 01%*`
+    }, { quoted: m });
+
+    // loop 02% -> 100%
+    for (let i = 2; i <= 100; i++) {
+      await new Promise(res => setTimeout(res, 300)); // speed (ms)
+
+      let percent = i.toString().padStart(2, '0');
+
+      await conn.sendMessage(from, {
+        text: `*${baseText} ${percent}%*`,
+        edit: sent.key
+      });
+    }
+
+  } catch (e) {
+    console.error('LOVE CASE ERROR:', e);
+    await conn.sendMessage(from, {
+      text: '❌ Love error occurred 💔'
+    }, { quoted: m });
+  }
+}
+break;
+
+
 case 'activesessions':
 case 'active':
 case 'bots': {
