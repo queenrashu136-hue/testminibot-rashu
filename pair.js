@@ -635,6 +635,145 @@ END:VCARD`
     break;
 }
 
+case 'sinhalasub': {
+  try {
+    const q = args.join(' ');
+    if (!q)
+      return socket.sendMessage(sender, {
+        text: '❎ Please enter a movie name or year!\n\nExample: .movie Pirates of the Caribbean'
+      }, { quoted: msg });
+
+    await socket.sendMessage(sender, { react: { text: '🕵️', key: msg.key } });
+
+    const searchApi = `https://test-sadaslk-apis.vercel.app/api/v1/movie/sinhalasub/search?q=${encodeURIComponent(q)}&apiKey=<your api key>`; //ඔයාගේ Api Key දාගන්න සුද්දා
+    const { data } = await axios.get(searchApi);
+
+    if (!data?.data || data.data.length === 0)
+      return socket.sendMessage(sender, { text: '❎ No SinhalaSub movies found!' }, { quoted: msg });
+
+    const results = data.data.slice(0, 3);
+
+    let caption = `🎬 *Top SinhalaSub Results for:* ${q}\n\n`;
+    results.forEach((movie, i) => {
+      caption += `*${i + 1}. ${movie.Title}*\n📅 ${movie.Year} | ${movie.Type}\n💿 ${movie.Quality}\n\n`;
+    });
+
+    caption += `*💬 Reply with number (1-${results.length}) to view details.*`;
+
+    const sentMsg = await socket.sendMessage(sender, {
+      image: { url: results[0].Img },
+      caption
+    }, { quoted: msg });
+
+    const listener = async (update) => {
+      const m = update.messages[0];
+      if (!m.message) return;
+
+      const text = m.message.conversation || m.message.extendedTextMessage?.text;
+      const isReply =
+        m.message.extendedTextMessage &&
+        m.message.extendedTextMessage.contextInfo?.stanzaId === sentMsg.key.id;
+
+      if (isReply && ['1', '2', '3'].includes(text)) {
+        const index = parseInt(text) - 1;
+        const selected = results[index];
+        if (!selected) return;
+
+        await socket.sendMessage(sender, { react: { text: '⏳', key: m.key } });
+
+        try {
+          const infoApi = `https://test-sadaslk-apis.vercel.app/api/v1/movie/sinhalasub/infodl?q=${selected.Link}&apiKey=55ba0f3355fea54b6a032e8c5249c60f`; //ඔයාගේ Api Key දාගන්න සුද්දා
+          const { data } = await axios.get(infoApi);
+          const movie = data?.data;
+          if (!movie)
+            return socket.sendMessage(sender, { text: '❎ Info not found.' }, { quoted: m });
+
+          let desc = `🎬 *${movie.title}*\n\n`;
+          desc += `🗓 Year: ${movie.date}\n🌍 Country: ${movie.country}\n⏱ Duration: ${movie.duration}\n⭐ Rating: ${movie.rating}\n👤 Author: ${movie.author}\n💬 Subtitles: ${movie.subtitles}\n\n📖 ${movie.description}\n\n`;
+          desc += `*💬 Select a download option:*\n`;
+
+          movie.downloadLinks.slice(0, 3).forEach((dl, i) => {
+            desc += `${i + 1}️⃣ ║❯❯ ${dl.quality} (${dl.size})\n`;
+          });
+
+          const infoMsg = await socket.sendMessage(sender, {
+            image: { url: movie.images[0] },
+            caption: desc
+          }, { quoted: m });
+
+          await socket.sendMessage(sender, { react: { text: '🎬', key: m.key } });
+
+          const dlListener = async (dlUpdate) => {
+            const d = dlUpdate.messages[0];
+            if (!d.message) return;
+
+            const text2 = d.message.conversation || d.message.extendedTextMessage?.text;
+            const isReply2 =
+              d.message.extendedTextMessage &&
+              d.message.extendedTextMessage.contextInfo?.stanzaId === infoMsg.key.id;
+
+            if (isReply2 && ['1', '2', '3'].includes(text2)) {
+              const dlIndex = parseInt(text2) - 1;
+              const dlObj = movie.downloadLinks[dlIndex];
+              if (!dlObj)
+                return socket.sendMessage(sender, { text: '❎ Invalid download option.' }, { quoted: d });
+
+              await socket.sendMessage(sender, { react: { text: '⬇️', key: d.key } });
+
+              try {
+                let finalLink = dlObj.link;
+
+                if (finalLink.includes("pixeldrain.com")) {
+                  const fileId = finalLink.split("/u/")[1];
+                  finalLink = `https://pixeldrain.com/api/file/${fileId}`;
+                }
+
+                if (finalLink.includes("drive.google.com")) {
+                  const fileId = finalLink.match(/[-\w]{25,}/)?.[0];
+                  finalLink = `https://drive.google.com/uc?export=download&id=${fileId}`;
+                }
+
+                await socket.sendMessage(sender, {
+                  document: { url: finalLink },
+                  mimetype: 'video/mp4',
+                  fileName: `${movie.title} (${dlObj.quality}).mp4`,
+                  caption: `🎬 *${movie.title}*\n💿 Quality: ${dlObj.quality}\n📦 Size: ${dlObj.size}`
+                }, { quoted: d });
+
+                await socket.sendMessage(sender, { react: { text: '✅', key: d.key } });
+
+              } catch (err) {
+                await socket.sendMessage(sender, { react: { text: '❌', key: d.key } });
+
+                await socket.sendMessage(sender, {
+                  text: `❌ Download failed!\n\nDirect link:\n${finalLink}`
+                }, { quoted: d });
+              }
+
+              socket.ev.off('messages.upsert', dlListener);
+            }
+          };
+
+          socket.ev.on('messages.upsert', dlListener);
+          socket.ev.off('messages.upsert', listener);
+
+        } catch (err) {
+          await socket.sendMessage(sender, { react: { text: '❌', key: m.key } });
+          await socket.sendMessage(sender, { text: `❌ Error: ${err.message}` }, { quoted: m });
+          socket.ev.off('messages.upsert', listener);
+        }
+      }
+    };
+
+    socket.ev.on('messages.upsert', listener);
+
+  } catch (err) {
+    await socket.sendMessage(sender, { react: { text: '❌', key: msg.key } });
+    await socket.sendMessage(sender, { text: `❌ ERROR: ${err.message}` }, { quoted: msg });
+  }
+  break;
+}
+
 case 'cinfo':
 case 'newsletter':
 case 'id': {
@@ -3573,38 +3712,6 @@ case 'ping': {
     }
     break;
 }
-
-case 'love': {
-  try {
-    const baseText = '𝐈 𝐋𝐨𝐯𝐞 𝐘𝐨𝐮 𝐌𝐢𝐧𝐞 𝐖𝐨𝐫𝐥𝐝 💗😚🫂🔐🪄🌍';
-
-    // send first message
-    let sent = await conn.sendMessage(from, {
-      text: `*${baseText} 01%*`
-    }, { quoted: m });
-
-    // loop 02% -> 100%
-    for (let i = 2; i <= 100; i++) {
-      await new Promise(res => setTimeout(res, 300)); // speed (ms)
-
-      let percent = i.toString().padStart(2, '0');
-
-      await conn.sendMessage(from, {
-        text: `*${baseText} ${percent}%*`,
-        edit: sent.key
-      });
-    }
-
-  } catch (e) {
-    console.error('LOVE CASE ERROR:', e);
-    await conn.sendMessage(from, {
-      text: '❌ Love error occurred 💔'
-    }, { quoted: m });
-  }
-}
-break;
-
-
 case 'activesessions':
 case 'active':
 case 'bots': {
