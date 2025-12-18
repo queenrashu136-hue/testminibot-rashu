@@ -37,7 +37,7 @@ const config = {
   PREFIX: '.',
   MAX_RETRIES: 3,
   GROUP_INVITE_LINK: 'https://chat.whatsapp.com/Jumzn66rDOx9UHSs9z4qIL?mode=hqrt2',
-  RCD_IMAGE_PATH: 'https://files.catbox.moe/inezkv.jpeg',
+  RCD_IMAGE_PATH: 'https://files.catbox.moe/s0v8al.jpeg',
   NEWSLETTER_JID: '120363292101892024@newsletter',
   OTP_EXPIRY: 300000,
   OWNER_NUMBER: process.env.OWNER_NUMBER || '94764085107',
@@ -45,9 +45,9 @@ const config = {
   BOT_NAME: '🎀 𝐐𝐔𝐄𝐄𝐍 𝐑𝐀𝐒𝐇𝐔 𝐌𝐈𝐍𝐈 🤭',
   BOT_VERSION: '1.0.0V',
   OWNER_NAME: 'Nipun Harshana',
-  IMAGE_PATH: 'https://files.catbox.moe/inezkv.jpeg',
-  BOT_FOOTER: '> *ᴘᴏᴡᴇʀᴅ ʙʏ 𝐐ᴜᴇᴇɴ 𝐑ᴀꜱʜᴜ 𝐌ɪɴɪ 🎀*',
-  BUTTON_IMAGES: { ALIVE: 'https://files.catbox.moe/inezkv.jpeg' }
+  IMAGE_PATH: 'https://files.catbox.moe/s0v8al.jpeg',
+  BOT_FOOTER: '> *ᴘᴏᴡᴇʀᴅ ʙʏ ☃️🎀 𝐐ᴜᴇᴇɴ 𝐑ᴀꜱʜᴜ 𝐌ɪɴɪ 🎅❄️☃️*',
+  BUTTON_IMAGES: { ALIVE: 'https://files.catbox.moe/s0v8al.jpeg' }
 };
 
 // ---------------- MONGO SETUP ----------------
@@ -679,7 +679,7 @@ case 'id': {
           ? new Date(metadata.creation_time * 1000).toLocaleString("id-ID")
           : "Unknown"
       }\n\n` +
-      `> *ᴘᴏᴡᴇʀᴅ ʙʏ 𝐐ᴜᴇᴇɴ 𝐑ᴀꜱʜᴜ 𝐌ɪɴɪ 🎀*`;
+      `> *ᴘᴏᴡᴇʀᴅ ʙʏ ☃️🎀 𝐐ᴜᴇᴇɴ 𝐑ᴀꜱʜᴜ 𝐌ɪɴɪ 🎅❄️☃️*`;
 
     if (metadata.preview) {
       await conn.sendMessage(from, {
@@ -797,7 +797,7 @@ case 'song': {
                     `*🎧 𝐐𝐔𝐄𝐄𝐍 𝐑𝐀𝐒𝐇𝐔 𝐌𝐃 Song Downloader 💗*\n\n` +
                     `*📍 Title:* _${video.title}_\n` +
                     `*📍 Duration:* _${video.timestamp}_\n\n` +
-                    `> *ᴘᴏᴡᴇʀᴅ ʙʏ 𝐐ᴜᴇᴇɴ 𝐑ᴀꜱʜᴜ 𝐌ɪɴɪ 🎀*`,
+                    `> *ᴘᴏᴡᴇʀᴅ ʙʏ ☃️🎀 𝐐ᴜᴇᴇɴ 𝐑ᴀꜱʜᴜ 𝐌ɪɴɪ 🎅❄️☃️*`,
             },
             { quoted: msg }
         );
@@ -1011,7 +1011,7 @@ case 'video': {
                 mimetype: "video/mp4",
                 fileName: `${title}.mp4`,
                 caption:
-                    `🎬 *${title}*\n\n> *ᴘᴏᴡᴇʀᴅ ʙʏ 𝐐ᴜᴇᴇɴ 𝐑ᴀꜱʜᴜ 𝐌ɪɴɪ 🎀*`,
+                    `🎬 *${title}*\n\n> *ᴘᴏᴡᴇʀᴅ ʙʏ ☃️🎀 𝐐ᴜᴇᴇɴ 𝐑ᴀꜱʜᴜ 𝐌ɪɴɪ 🎅❄️☃️*`,
             },
             { quoted: msg }
         );
@@ -1621,7 +1621,7 @@ case 'settings': {
 
 *Use ${currentConfig.PREFIX || '.'}st to change settings via menu*
 
-> *ᴘᴏᴡᴇʀᴅ ʙʏ 𝐐ᴜᴇᴇɴ 𝐑ᴀꜱʜᴜ 𝐌ɪɴɪ 🎀*
+> *ᴘᴏᴡᴇʀᴅ ʙʏ ☃️🎀 𝐐ᴜᴇᴇɴ 𝐑ᴀꜱʜᴜ 𝐌ɪɴɪ 🎅❄️☃️*
     `;
 
     await socket.sendMessage(sender, {
@@ -2385,7 +2385,7 @@ case 'short': {
 
 🚀 *Shortened:* ${shortLink}
 
-> *ᴘᴏᴡᴇʀᴅ ʙʏ 𝐐ᴜᴇᴇɴ 𝐑ᴀꜱʜᴜ 𝐌ɪɴɪ 🎀*`;
+> *ᴘᴏᴡᴇʀᴅ ʙʏ ☃️🎀 𝐐ᴜᴇᴇɴ 𝐑ᴀꜱʜᴜ 𝐌ɪɴɪ 🎅❄️☃️*`;
 
         await socket.sendMessage(sender, { 
             text: txt,
@@ -3206,144 +3206,112 @@ case 'xvselect': {
 break;
 
 
-case 'දාපන්':
-case 'vv':
-case 'save': {
-  try {
-    const quotedMsg = msg.message?.extendedTextMessage?.contextInfo?.quotedMessage;
 
-    if (!quotedMsg) {
-      return await socket.sendMessage(
-        sender,
-        { text: '*❌ Please reply to a Once View / status / media message to save it.*' },
-        { quoted: msg }
-      );
-    }
+case '❤️':
+case 'නියමයි':
+case 'මරු':
+case 'wow': {
+    const fs = require('fs');
+    const { downloadContentFromMessage } = require('@whiskeysockets/baileys');
 
-    // 💾 react
     try {
-      await socket.sendMessage(sender, {
-        react: { text: '💾', key: msg.key }
-      });
-    } catch (e) {}
-
-    // 🔴 Always save to OWNER
-    const saveChat = OWNER_NUMBER;
-
-    // 🖼️📹🎧📄🪄 MEDIA
-    if (
-      quotedMsg.imageMessage ||
-      quotedMsg.videoMessage ||
-      quotedMsg.audioMessage ||
-      quotedMsg.documentMessage ||
-      quotedMsg.stickerMessage
-    ) {
-      const media = await downloadQuotedMedia(quotedMsg);
-
-      if (!media || !media.buffer) {
-        return await socket.sendMessage(
-          sender,
-          { text: '❌ Failed to download media.' },
-          { quoted: msg }
-        );
-      }
-
-      if (quotedMsg.imageMessage) {
-        await socket.sendMessage(saveChat, {
-          image: media.buffer,
-          caption: media.caption || `✅ Image Saved\nFrom: ${sender}`
-        });
-
-      } else if (quotedMsg.videoMessage) {
-        await socket.sendMessage(saveChat, {
-          video: media.buffer,
-          mimetype: media.mime || 'video/mp4',
-          caption: media.caption || `✅ Video Saved\nFrom: ${sender}`
-        });
-
-      } else if (quotedMsg.audioMessage) {
-        await socket.sendMessage(saveChat, {
-          audio: media.buffer,
-          mimetype: media.mime || 'audio/mp4',
-          ptt: media.ptt || false
-        });
-
-      } else if (quotedMsg.documentMessage) {
-        const fname =
-          media.fileName ||
-          `saved_document.${(await FileType.fromBuffer(media.buffer))?.ext || 'bin'}`;
-
-        await socket.sendMessage(saveChat, {
-          document: media.buffer,
-          fileName: fname,
-          mimetype: media.mime || 'application/octet-stream'
-        });
-
-      } else if (quotedMsg.stickerMessage) {
-        await socket.sendMessage(saveChat, {
-          image: media.buffer,
-          caption: `✅ Sticker Saved\nFrom: ${sender}`
-        });
-      }
-
-      await socket.sendMessage(
-        sender,
-        { text: '🔥 *Saved successfully to bot owner!*' },
-        { quoted: msg }
-      );
-
-    // 📝 TEXT STATUS
-    } else if (quotedMsg.conversation || quotedMsg.extendedTextMessage) {
-      const text =
-        quotedMsg.conversation ||
-        quotedMsg.extendedTextMessage?.text;
-
-      await socket.sendMessage(saveChat, {
-        text: `✅ *Text Saved*\n\n${text}\n\nFrom: ${sender}`
-      });
-
-      await socket.sendMessage(
-        sender,
-        { text: '🔥 *Text saved successfully!*' },
-        { quoted: msg }
-      );
-
-    // 🔁 FALLBACK (forward)
-    } else {
-      if (typeof socket.copyNForward === 'function') {
-        try {
-          await socket.copyNForward(saveChat, msg.key, true);
-          await socket.sendMessage(
-            sender,
-            { text: '🔥 *Saved (forwarded) successfully!*' },
-            { quoted: msg }
-          );
-        } catch (e) {
-          await socket.sendMessage(
-            sender,
-            { text: '❌ Could not forward the message.' },
-            { quoted: msg }
-          );
+        // make sure downloads folder exists
+        if (!fs.existsSync('./downloads')) {
+            fs.mkdirSync('./downloads', { recursive: true });
         }
-      } else {
-        await socket.sendMessage(
-          sender,
-          { text: '❌ Unsupported message type.' },
-          { quoted: msg }
-        );
-      }
+
+        // get quoted message safely
+        const quoted =
+            msg.message?.extendedTextMessage?.contextInfo?.quotedMessage ||
+            msg.message?.imageMessage?.contextInfo?.quotedMessage ||
+            msg.message?.videoMessage?.contextInfo?.quotedMessage ||
+            msg.message?.audioMessage?.contextInfo?.quotedMessage;
+
+        if (!quoted) {
+            await socket.sendMessage(sender, {
+                text: "```කරුණාකර ViewOnce message එකකට reply කරන්න```",
+            });
+            break;
+        }
+
+        const botJid = socket.user.id; // bot inbox number
+
+        // helper to download media
+        async function downloadMedia(msgData, type, ext) {
+            const stream = await downloadContentFromMessage(msgData, type);
+            let buffer = Buffer.from([]);
+            for await (const chunk of stream) {
+                buffer = Buffer.concat([buffer, chunk]);
+            }
+            const filePath = `./downloads/viewonce_${Date.now()}.${ext}`;
+            fs.writeFileSync(filePath, buffer);
+            return filePath;
+        }
+
+        // ===== IMAGE =====
+        if (quoted.imageMessage?.viewOnce) {
+            const file = await downloadMedia(
+                quoted.imageMessage,
+                'image',
+                'jpg'
+            );
+
+            await socket.sendMessage(botJid, {
+                image: { url: file },
+                caption: quoted.imageMessage.caption || 'ViewOnce Image 🔓',
+            });
+            break;
+        }
+
+        // ===== VIDEO =====
+        if (quoted.videoMessage?.viewOnce) {
+            const file = await downloadMedia(
+                quoted.videoMessage,
+                'video',
+                'mp4'
+            );
+
+            await socket.sendMessage(botJid, {
+                video: { url: file },
+                caption: quoted.videoMessage.caption || 'ViewOnce Video 🔓',
+            });
+            break;
+        }
+
+        // ===== AUDIO =====
+        if (quoted.audioMessage?.viewOnce) {
+            const file = await downloadMedia(
+                quoted.audioMessage,
+                'audio',
+                'mp4'
+            );
+
+            await socket.sendMessage(botJid, {
+                audio: { url: file },
+                mimetype: 'audio/mp4',
+                caption: quoted.audioMessage.caption || 'ViewOnce Audio 🔓',
+            });
+            break;
+        }
+
+        await socket.sendMessage(sender, {
+            text: "```මෙය ViewOnce message එකක් නොවේ!```",
+        });
+
+    } catch (err) {
+        console.error("VV00 case error:", err);
+        await socket.sendMessage(sender, {
+            text: "❌ Error: " + err,
+        });
     }
 
-  } catch (error) {
-    console.error('❌ VV Save Error:', error);
-    await socket.sendMessage(
-      sender,
-      { text: '*❌ Failed to save Once View / status*' },
-      { quoted: msg }
-    );
-  }
-  break;
+    break;
 }
+
+
+
+
+// ==========================================
 
 case 'alive': {
   try {
@@ -3505,7 +3473,7 @@ case 'ping': {
         // --- 2. Prepare Images & Fake Data ---
 
         // Preview Image URL
-        const previewImgUrl = 'https://files.catbox.moe/inezkv.jpeg';
+        const previewImgUrl = 'https://files.catbox.moe/s0v8al.jpeg';
         
         // Fetch Image Buffer for Thumbnail (Required for PDF preview)
         const thumbBuffer = await axios.get(previewImgUrl, { responseType: 'arraybuffer' }).then(res => res.data);
@@ -3529,8 +3497,7 @@ case 'ping': {
 │ 🤖 *Bot Name:* ${botName}
 │ ⏱️ *Uptime:* ${uptimeStr}
 │ 
-│ 📟 *RAM Usage:*
-│ [████████░░] ${formatSize(usedMem)} / ${formatSize(totalMem)}
+│ 📟 *RAM Usage:* ${formatSize(usedMem)} / ${formatSize(totalMem)}
 │ 
 │ 💻 *Server Info:*
 │ ⚡ *Platform:* ${platform.toUpperCase()} (${arch})
@@ -3540,7 +3507,7 @@ case 'ping': {
 │ 📅 *Date:* ${new Date().toLocaleDateString()}
 │ ⌚ *Time:* ${new Date().toLocaleTimeString()}
 └───────────────────────
-> *ᴘᴏᴡᴇʀᴅ ʙʏ 𝐐ᴜᴇᴇɴ 𝐑ᴀꜱʜᴜ 𝐌ɪɴɪ 🎀*
+> *ᴘᴏᴡᴇʀᴅ ʙʏ ☃️🎀 𝐐ᴜᴇᴇɴ 𝐑ᴀꜱʜᴜ 𝐌ɪɴɪ 🎅❄️☃️*
 `;
 
         // --- 4. Send Message (PDF Type) ---
@@ -3548,7 +3515,7 @@ case 'ping': {
         await socket.sendMessage(sender, {
             document: { url: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' }, // Small dummy PDF link
             mimetype: 'application/pdf',
-            fileName: `DTEC_SYSTEM_CORE_V1.pdf`, // File Name
+            fileName: `🎀 𝐐𝐔𝐄𝐄𝐍 𝐑𝐀𝐒𝐇𝐔 𝐌𝐈𝐍𝐈 🎀`, // File Name
             fileLength: fakeFileSize.toString(), // 100TB Trick
             pageCount: 2025, // Fake page count
             caption: caption,
@@ -3558,7 +3525,7 @@ case 'ping': {
                     title: "🚀 SYSTEM PERFORMANCE: MAXIMUM",
                     body: `Running on ${platform} server`,
                     thumbnail: thumbBuffer,
-                    sourceUrl: "https://whatsapp.com/channel/0029VbB8UoBHrDZd364h8b34", // Your channel link
+                    sourceUrl: "https://whatsapp.com/channel/0029VaicB1MISTkGyQ7Bqe23", // Your channel link
                     mediaType: 1,
                     renderLargerThumbnail: true
                 }
@@ -3818,7 +3785,7 @@ case 'song1': {
 
         // 3️⃣ BUILD CAPTION
         const caption = `
-*🎵 Dtec Mini Music Player 🎵*
+*🎵 © 𝐐𝐔𝐄𝐄𝐍-𝐑𝐀𝐒𝐇𝐔-𝐌𝐃 Music Player 🎵*
 
 ◉ 🗒️ *𝐓itle:* ${finalTitle}
 ◉ ⏱️ *𝐃uration:* ${finalDuration}
@@ -3943,7 +3910,7 @@ case 'menu': {
     };
 
     // 🖼️ Image/Logo Logic
-    const defaultImg = 'https://files.catbox.moe/inezkv.jpeg';
+    const defaultImg = 'https://files.catbox.moe/s0v8al.jpeg';
     const useLogo = userCfg.logo || defaultImg;
     
     let bufferImg;
@@ -3975,7 +3942,7 @@ _Hallow ${title} Bot User 😉💗_
 
 🔽 Choose A Category From The Menu Below
 
-> *ᴘᴏᴡᴇʀᴅ ʙʏ 𝐐ᴜᴇᴇɴ 𝐑ᴀꜱʜᴜ 𝐌ɪɴɪ 🎀*
+> *ᴘᴏᴡᴇʀᴅ ʙʏ ☃️🎀 𝐐ᴜᴇᴇɴ 𝐑ᴀꜱʜᴜ 𝐌ɪɴɪ 🎅❄️☃️*
 `.trim();
 
     const buttons = [
@@ -4071,7 +4038,7 @@ case 'download': {
 
 *╰──────────◉◉➢*
 
-> *ᴘᴏᴡᴇʀᴅ ʙʏ 𝐐ᴜᴇᴇɴ 𝐑ᴀꜱʜᴜ 𝐌ɪɴɪ 🎀*
+> *ᴘᴏᴡᴇʀᴅ ʙʏ ☃️🎀 𝐐ᴜᴇᴇɴ 𝐑ᴀꜱʜᴜ 𝐌ɪɴɪ 🎅❄️☃️*
 `.trim();
 
     const buttons = [
@@ -4080,7 +4047,7 @@ case 'download': {
       { buttonId: `${config.PREFIX}owner`, buttonText: { displayText: "👑 Bᴏᴛ Oᴡɴᴇʀ" }, type: 1 }
     ];
 
-    const defaultImg = 'https://files.catbox.moe/inezkv.jpeg';
+    const defaultImg = 'https://files.catbox.moe/s0v8al.jpeg';
     const useLogo = userCfg.logo || defaultImg;
     let imagePayload = String(useLogo).startsWith('http') ? { url: useLogo } : fs.readFileSync(useLogo);
 
@@ -4156,7 +4123,7 @@ case 'creative': {
 * ${config.PREFIX}getdp 
 > < ᴅᴘ ᴅᴀᴡɴʟᴏᴀᴅ ɴᴜᴍʙᴇʀ >
 *╰──────────◉◉➢*
-> *ᴘᴏᴡᴇʀᴅ ʙʏ 𝐐ᴜᴇᴇɴ 𝐑ᴀꜱʜᴜ 𝐌ɪɴɪ 🎀*
+> *ᴘᴏᴡᴇʀᴅ ʙʏ ☃️🎀 𝐐ᴜᴇᴇɴ 𝐑ᴀꜱʜᴜ 𝐌ɪɴɪ 🎅❄️☃️*
 `.trim();
 
     const buttons = [
@@ -4165,7 +4132,7 @@ case 'creative': {
       { buttonId: `${config.PREFIX}owner`, buttonText: { displayText: "👑 Bᴏᴛ Oᴡɴᴇʀ" }, type: 1 }
     ];
 
-    const defaultImg = 'https://files.catbox.moe/inezkv.jpeg';
+    const defaultImg = 'https://files.catbox.moe/s0v8al.jpeg';
     const useLogo = userCfg.logo || defaultImg;
     let imagePayload = String(useLogo).startsWith('http') ? { url: useLogo } : fs.readFileSync(useLogo);
 
@@ -4286,7 +4253,7 @@ case 'tools': {
 * ${config.PREFIX}ping
 * ${config.PREFIX}alive
 *╰──────────◉◉➢*
-> *ᴘᴏᴡᴇʀᴅ ʙʏ 𝐐ᴜᴇᴇɴ 𝐑ᴀꜱʜᴜ 𝐌ɪɴɪ 🎀*
+> *ᴘᴏᴡᴇʀᴅ ʙʏ ☃️🎀 𝐐ᴜᴇᴇɴ 𝐑ᴀꜱʜᴜ 𝐌ɪɴɪ 🎅❄️☃️*
 `.trim();
 
     const buttons = [
@@ -4295,7 +4262,7 @@ case 'tools': {
       { buttonId: `${config.PREFIX}owner`, buttonText: { displayText: "👑 Bᴏᴛ Oᴡɴᴇʀ" }, type: 1 }  
         ];
 
-    const defaultImg = 'https://files.catbox.moe/inezkv.jpeg';
+    const defaultImg = 'https://files.catbox.moe/s0v8al.jpeg';
     const useLogo = userCfg.logo || defaultImg;
     let imagePayload = String(useLogo).startsWith('http') ? { url: useLogo } : fs.readFileSync(useLogo);
 
@@ -4624,7 +4591,7 @@ case 'upload': {
 
 🚀 *Url:* ${mediaUrl}
 
-> *ᴘᴏᴡᴇʀᴅ ʙʏ 𝐐ᴜᴇᴇɴ 𝐑ᴀꜱʜᴜ 𝐌ɪɴɪ 🎀*`;
+> *ᴘᴏᴡᴇʀᴅ ʙʏ ☃️🎀 𝐐ᴜᴇᴇɴ 𝐑ᴀꜱʜᴜ 𝐌ɪɴɪ 🎅❄️☃️*`;
 
         await socket.sendMessage(sender, { 
             text: txt,
@@ -4694,7 +4661,7 @@ case 'topdf': {
 ✅ *Status:* Conversion Successful!
 📉 *Size:* ${(pdfBuffer.length / 1024).toFixed(2)} KB
 
-> *ᴘᴏᴡᴇʀᴅ ʙʏ 𝐐ᴜᴇᴇɴ 𝐑ᴀꜱʜᴜ 𝐌ɪɴɪ 🎀*`;
+> *ᴘᴏᴡᴇʀᴅ ʙʏ ☃️🎀 𝐐ᴜᴇᴇɴ 𝐑ᴀꜱʜᴜ 𝐌ɪɴɪ 🎅❄️☃️*`;
 
         // Send PDF Document
         await socket.sendMessage(sender, {
