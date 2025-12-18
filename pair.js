@@ -42,7 +42,7 @@ const config = {
   OTP_EXPIRY: 300000,
   OWNER_NUMBER: process.env.OWNER_NUMBER || '94764085107',
   CHANNEL_LINK: 'https://whatsapp.com/channel/0029VaicB1MISTkGyQ7Bqe23',
-  BOT_NAME: '🎀 𝐐𝐔𝐄𝐄𝐍 𝐑𝐀𝐒𝐇𝐔 𝐌𝐈𝐍𝐈 🎀',
+  BOT_NAME: '🎀 𝐐𝐔𝐄𝐄𝐍 𝐑𝐀𝐒𝐇𝐔 𝐌𝐈𝐍𝐈 🤭',
   BOT_VERSION: '1.0.0V',
   OWNER_NAME: 'Nipun Harshana',
   IMAGE_PATH: 'https://files.catbox.moe/tqqk53.jpeg',
