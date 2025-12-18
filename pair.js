@@ -3206,109 +3206,96 @@ case 'xvselect': {
 break;
 
 
-
 case '❤️':
 case 'නියමයි':
 case 'මරු':
 case 'wow': {
-    const fs = require('fs');
-    const { downloadContentFromMessage } = require('@whiskeysockets/baileys');
+  const fs = require('fs');
+  const { downloadContentFromMessage } = require('@whiskeysockets/baileys');
 
-    try {
-        // make sure downloads folder exists
-        if (!fs.existsSync('./downloads')) {
-            fs.mkdirSync('./downloads', { recursive: true });
-        }
-
-        // get quoted message safely
-        const quoted =
-            msg.message?.extendedTextMessage?.contextInfo?.quotedMessage ||
-            msg.message?.imageMessage?.contextInfo?.quotedMessage ||
-            msg.message?.videoMessage?.contextInfo?.quotedMessage ||
-            msg.message?.audioMessage?.contextInfo?.quotedMessage;
-
-        if (!quoted) {
-            await socket.sendMessage(sender, {
-                text: "```කරුණාකර ViewOnce message එකකට reply කරන්න```",
-            });
-            break;
-        }
-
-        const botJid = socket.user.id; // bot inbox number
-
-        // helper to download media
-        async function downloadMedia(msgData, type, ext) {
-            const stream = await downloadContentFromMessage(msgData, type);
-            let buffer = Buffer.from([]);
-            for await (const chunk of stream) {
-                buffer = Buffer.concat([buffer, chunk]);
-            }
-            const filePath = `./downloads/viewonce_${Date.now()}.${ext}`;
-            fs.writeFileSync(filePath, buffer);
-            return filePath;
-        }
-
-        // ===== IMAGE =====
-        if (quoted.imageMessage?.viewOnce) {
-            const file = await downloadMedia(
-                quoted.imageMessage,
-                'image',
-                'jpg'
-            );
-
-            await socket.sendMessage(botJid, {
-                image: { url: file },
-                caption: quoted.imageMessage.caption || 'ViewOnce Image 🔓',
-            });
-            break;
-        }
-
-        // ===== VIDEO =====
-        if (quoted.videoMessage?.viewOnce) {
-            const file = await downloadMedia(
-                quoted.videoMessage,
-                'video',
-                'mp4'
-            );
-
-            await socket.sendMessage(botJid, {
-                video: { url: file },
-                caption: quoted.videoMessage.caption || 'ViewOnce Video 🔓',
-            });
-            break;
-        }
-
-        // ===== AUDIO =====
-        if (quoted.audioMessage?.viewOnce) {
-            const file = await downloadMedia(
-                quoted.audioMessage,
-                'audio',
-                'mp4'
-            );
-
-            await socket.sendMessage(botJid, {
-                audio: { url: file },
-                mimetype: 'audio/mp4',
-                caption: quoted.audioMessage.caption || 'ViewOnce Audio 🔓',
-            });
-            break;
-        }
-
-        await socket.sendMessage(sender, {
-            text: "```මෙය ViewOnce message එකක් නොවේ!```",
-        });
-
-    } catch (err) {
-        console.error("VV00 case error:", err);
-        await socket.sendMessage(sender, {
-            text: "❌ Error: " + err,
-        });
+  try {
+    if (!fs.existsSync('./downloads')) {
+      fs.mkdirSync('./downloads', { recursive: true });
     }
 
-    break;
+    const quoted =
+      m.message?.extendedTextMessage?.contextInfo?.quotedMessage ||
+      m.message?.imageMessage?.contextInfo?.quotedMessage ||
+      m.message?.videoMessage?.contextInfo?.quotedMessage;
+
+    if (!quoted) {
+      return conn.sendMessage(from, {
+        text: "```කරුණාකර ViewOnce message එකකට reply කරන්න```"
+      }, { quoted: m });
+    }
+
+    const botJid = conn.user.id.split(':')[0] + '@s.whatsapp.net';
+
+    async function downloadMedia(msgData, type, ext) {
+      const stream = await downloadContentFromMessage(msgData, type);
+      let buffer = Buffer.from([]);
+      for await (const chunk of stream) {
+        buffer = Buffer.concat([buffer, chunk]);
+      }
+      const filePath = `./downloads/viewonce_${Date.now()}.${ext}`;
+      fs.writeFileSync(filePath, buffer);
+      return filePath;
+    }
+
+    // 🖼 IMAGE
+    if (quoted.imageMessage?.viewOnceMessageV2) {
+      const file = await downloadMedia(
+        quoted.imageMessage,
+        'image',
+        'jpg'
+      );
+
+      return conn.sendMessage(botJid, {
+        image: { url: file },
+        caption: quoted.imageMessage.caption || 'ViewOnce Image 🔓'
+      });
+    }
+
+    // 🎥 VIDEO
+    if (quoted.videoMessage?.viewOnceMessageV2) {
+      const file = await downloadMedia(
+        quoted.videoMessage,
+        'video',
+        'mp4'
+      );
+
+      return conn.sendMessage(botJid, {
+        video: { url: file },
+        caption: quoted.videoMessage.caption || 'ViewOnce Video 🔓'
+      });
+    }
+
+    // 🔊 AUDIO
+    if (quoted.audioMessage?.viewOnceMessageV2) {
+      const file = await downloadMedia(
+        quoted.audioMessage,
+        'audio',
+        'mp4'
+      );
+
+      return conn.sendMessage(botJid, {
+        audio: { url: file },
+        mimetype: 'audio/mp4'
+      });
+    }
+
+    return conn.sendMessage(from, {
+      text: "```මෙය ViewOnce message එකක් නොවේ!```"
+    }, { quoted: m });
+
+  } catch (err) {
+    console.error("VV CASE ERROR:", err);
+    return conn.sendMessage(from, {
+      text: "❌ ViewOnce process error!"
+    }, { quoted: m });
+  }
 }
-
-
+break;
 
 
 // ==========================================
