@@ -635,140 +635,105 @@ END:VCARD`
     break;
 }
 
-case 'sinhalasub': {
+case 'baiscopes': {
   try {
-    const q = args.join(' ');
+    const q = args.join(' ').trim();
     if (!q)
-      return socket.sendMessage(sender, {
-        text: '❎ Please enter a movie name or year!\n\nExample: .movie Pirates of the Caribbean'
-      }, { quoted: msg });
+      return socket.sendMessage(sender, { text: '❎ Please enter a movie name!\n\nExample: .baiscopes Captain America' }, { quoted: msg });
 
-    await socket.sendMessage(sender, { react: { text: '🕵️', key: msg.key } });
+    await socket.sendMessage(sender, { react: { text: '🔎', key: msg.key } });
 
-    const searchApi = `https://test-sadaslk-apis.vercel.app/api/v1/movie/sinhalasub/search?q=${encodeURIComponent(q)}&apiKey=<your api key>`; //ඔයාගේ Api Key දාගන්න සුද්දා
+    const searchApi = `https://sadaslk-apis.vercel.app/api/v1/movie/baiscopes/search?q=${encodeURIComponent(q)}&apiKey=<your api key>`; //ඔයාගේ Api Key දාගන්න සුද්දා
     const { data } = await axios.get(searchApi);
 
-    if (!data?.data || data.data.length === 0)
-      return socket.sendMessage(sender, { text: '❎ No SinhalaSub movies found!' }, { quoted: msg });
+    if (!data?.status || !data.data || data.data.length === 0)
+      return socket.sendMessage(sender, { text: '❎ No Baiscopes results found!' }, { quoted: msg });
 
-    const results = data.data.slice(0, 3);
+    const results = data.data.slice(0, 5);
 
-    let caption = `🎬 *Top SinhalaSub Results for:* ${q}\n\n`;
-    results.forEach((movie, i) => {
-      caption += `*${i + 1}. ${movie.Title}*\n📅 ${movie.Year} | ${movie.Type}\n💿 ${movie.Quality}\n\n`;
-    });
+    const buttons = results.map((r, i) => ({
+      buttonId: `baiscopes_${i}`,
+      buttonText: { displayText: `🎬 ${r.title}` },
+      type: 1
+    }));
 
-    caption += `*💬 Reply with number (1-${results.length}) to view details.*`;
-
-    const sentMsg = await socket.sendMessage(sender, {
-      image: { url: results[0].Img },
-      caption
+    const searchMsg = await socket.sendMessage(sender, {
+      image: { url: results[0].imageUrl },
+      caption: `🎬 *Top Baiscopes Results for:* ${q}\n\n💬 Reply with the buttons below to select a movie.\n\n🌐 Visit: sula-md.site`,
+      buttons: buttons,
+      headerType: 4
     }, { quoted: msg });
 
-    const listener = async (update) => {
+    const movieSelectListener = async (update) => {
       const m = update.messages[0];
-      if (!m.message) return;
+      if (!m?.message?.buttonsResponseMessage) return;
+      if (m.key.remoteJid !== sender) return;
 
-      const text = m.message.conversation || m.message.extendedTextMessage?.text;
-      const isReply =
-        m.message.extendedTextMessage &&
-        m.message.extendedTextMessage.contextInfo?.stanzaId === sentMsg.key.id;
+      const btnId = m.message.buttonsResponseMessage.selectedButtonId;
+      if (!btnId.startsWith('baiscopes_')) return;
 
-      if (isReply && ['1', '2', '3'].includes(text)) {
-        const index = parseInt(text) - 1;
-        const selected = results[index];
-        if (!selected) return;
+      const index = parseInt(btnId.split('_')[1]);
+      const selected = results[index];
+      if (!selected) return;
 
-        await socket.sendMessage(sender, { react: { text: '⏳', key: m.key } });
+      await socket.sendMessage(sender, { react: { text: '⏳', key: m.key } });
 
-        try {
-          const infoApi = `https://test-sadaslk-apis.vercel.app/api/v1/movie/sinhalasub/infodl?q=${selected.Link}&apiKey=55ba0f3355fea54b6a032e8c5249c60f`; //ඔයාගේ Api Key දාගන්න සුද්දා
-          const { data } = await axios.get(infoApi);
-          const movie = data?.data;
-          if (!movie)
-            return socket.sendMessage(sender, { text: '❎ Info not found.' }, { quoted: m });
+      const infoApi = `https://sadaslk-apis.vercel.app/api/v1/movie/baiscopes/infodl?q=${encodeURIComponent(selected.link)}&apiKey=55ba0f3355fea54b6a032e8c5249c60f`; //ඔයාගේ Api Key දාගන්න සුද්දා
+      const { data: infoData } = await axios.get(infoApi);
 
-          let desc = `🎬 *${movie.title}*\n\n`;
-          desc += `🗓 Year: ${movie.date}\n🌍 Country: ${movie.country}\n⏱ Duration: ${movie.duration}\n⭐ Rating: ${movie.rating}\n👤 Author: ${movie.author}\n💬 Subtitles: ${movie.subtitles}\n\n📖 ${movie.description}\n\n`;
-          desc += `*💬 Select a download option:*\n`;
+      if (!infoData?.status || !infoData.data) return socket.sendMessage(sender, { text: '❎ Failed to get movie info.' }, { quoted: m });
 
-          movie.downloadLinks.slice(0, 3).forEach((dl, i) => {
-            desc += `${i + 1}️⃣ ║❯❯ ${dl.quality} (${dl.size})\n`;
-          });
+      const info = infoData.data;
+      const dlButtons = info.downloadLinks.map((dl, i) => ({
+        buttonId: `baiscopes_dl_${i}`,
+        buttonText: { displayText: `⭐ ${dl.quality} (${dl.size})` },
+        type: 1
+      }));
 
-          const infoMsg = await socket.sendMessage(sender, {
-            image: { url: movie.images[0] },
-            caption: desc
-          }, { quoted: m });
+      const caption = `🎬 *${info.movieInfo.title}*\n📅 Release: ${info.movieInfo.releaseDate}\n🕒 Runtime: ${info.movieInfo.runtime}\n🌍 Country: ${info.movieInfo.country}\n⭐ IMDb: ${info.movieInfo.ratingValue}\n\n💬 Select a button below to download:\n\n🌐 Visit: sula-md.site`;
 
-          await socket.sendMessage(sender, { react: { text: '🎬', key: m.key } });
+      const infoMsg = await socket.sendMessage(sender, {
+        image: { url: info.movieInfo.galleryImages[0] },
+        caption,
+        buttons: dlButtons,
+        headerType: 4
+      }, { quoted: m });
 
-          const dlListener = async (dlUpdate) => {
-            const d = dlUpdate.messages[0];
-            if (!d.message) return;
+      socket.ev.off('messages.upsert', movieSelectListener);
 
-            const text2 = d.message.conversation || d.message.extendedTextMessage?.text;
-            const isReply2 =
-              d.message.extendedTextMessage &&
-              d.message.extendedTextMessage.contextInfo?.stanzaId === infoMsg.key.id;
+      const dlListener = async (dlUpdate) => {
+        const d = dlUpdate.messages[0];
+        if (!d?.message?.buttonsResponseMessage) return;
+        if (d.key.remoteJid !== sender) return;
 
-            if (isReply2 && ['1', '2', '3'].includes(text2)) {
-              const dlIndex = parseInt(text2) - 1;
-              const dlObj = movie.downloadLinks[dlIndex];
-              if (!dlObj)
-                return socket.sendMessage(sender, { text: '❎ Invalid download option.' }, { quoted: d });
+        const dlBtnId = d.message.buttonsResponseMessage.selectedButtonId;
+        if (!dlBtnId.startsWith('baiscopes_dl_')) return;
 
-              await socket.sendMessage(sender, { react: { text: '⬇️', key: d.key } });
+        const dlIndex = parseInt(dlBtnId.split('_')[2]);
+        const dlObj = info.downloadLinks[dlIndex];
+        if (!dlObj) return;
 
-              try {
-                let finalLink = dlObj.link;
+        await socket.sendMessage(sender, { react: { text: '⬇️', key: d.key } });
 
-                if (finalLink.includes("pixeldrain.com")) {
-                  const fileId = finalLink.split("/u/")[1];
-                  finalLink = `https://pixeldrain.com/api/file/${fileId}`;
-                }
+        await socket.sendMessage(sender, {
+          document: { url: dlObj.directLinkUrl },
+          mimetype: 'video/mp4',
+          fileName: `${info.movieInfo.title} (${dlObj.quality}).mp4`,
+          caption: `🎬 *${info.movieInfo.title}*\n\n⭐ Quality: ${dlObj.quality}\n📦 Size: ${dlObj.size}\n\n🌐 Visit: sula-md.site\n\n✅ Download Successful`
+        }, { quoted: d });
 
-                if (finalLink.includes("drive.google.com")) {
-                  const fileId = finalLink.match(/[-\w]{25,}/)?.[0];
-                  finalLink = `https://drive.google.com/uc?export=download&id=${fileId}`;
-                }
+        await socket.sendMessage(sender, { react: { text: '✅', key: d.key } });
 
-                await socket.sendMessage(sender, {
-                  document: { url: finalLink },
-                  mimetype: 'video/mp4',
-                  fileName: `${movie.title} (${dlObj.quality}).mp4`,
-                  caption: `🎬 *${movie.title}*\n💿 Quality: ${dlObj.quality}\n📦 Size: ${dlObj.size}`
-                }, { quoted: d });
+        socket.ev.off('messages.upsert', dlListener);
+      };
 
-                await socket.sendMessage(sender, { react: { text: '✅', key: d.key } });
-
-              } catch (err) {
-                await socket.sendMessage(sender, { react: { text: '❌', key: d.key } });
-
-                await socket.sendMessage(sender, {
-                  text: `❌ Download failed!\n\nDirect link:\n${finalLink}`
-                }, { quoted: d });
-              }
-
-              socket.ev.off('messages.upsert', dlListener);
-            }
-          };
-
-          socket.ev.on('messages.upsert', dlListener);
-          socket.ev.off('messages.upsert', listener);
-
-        } catch (err) {
-          await socket.sendMessage(sender, { react: { text: '❌', key: m.key } });
-          await socket.sendMessage(sender, { text: `❌ Error: ${err.message}` }, { quoted: m });
-          socket.ev.off('messages.upsert', listener);
-        }
-      }
+      socket.ev.on('messages.upsert', dlListener);
     };
 
-    socket.ev.on('messages.upsert', listener);
+    socket.ev.on('messages.upsert', movieSelectListener);
 
   } catch (err) {
-    await socket.sendMessage(sender, { react: { text: '❌', key: msg.key } });
+    console.error(err);
     await socket.sendMessage(sender, { text: `❌ ERROR: ${err.message}` }, { quoted: msg });
   }
   break;
