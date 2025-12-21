@@ -4010,8 +4010,10 @@ case 'song1': {
     break;
 }
 // ==================== MAIN MENU ====================
+
+
 case 'menu': {
-  try { await socket.sendMessage(sender, { react: { text: "📜", key: msg.key } }); } catch(e){}
+  try { await socket.sendMessage(sender, { react: { text: "🗒️", key: msg.key } }); } catch(e){}
 
   try {
     const startTime = socketCreationTime.get(number) || Date.now();
@@ -4020,19 +4022,14 @@ case 'menu': {
     const minutes = Math.floor((uptime % 3600) / 60);
     const seconds = Math.floor(uptime % 60);
 
-    // Load Config
+    // load per-session config (logo, botName)
     let userCfg = {};
     try { if (number && typeof loadUserConfigFromMongo === 'function') userCfg = await loadUserConfigFromMongo((number || '').replace(/[^0-9]/g, '')) || {}; }
     catch(e){ console.warn('menu: failed to load config', e); userCfg = {}; }
 
-    // 🔥 NAME CHANGED TO DTEC MINI V1
-    const title = userCfg.botName || '© 𝐐𝐔𝐄𝐄𝐍-𝐑𝐀𝐒𝐇𝐔-𝐌𝐃';
+    const title = userCfg.botName || '𝐐𝐔𝐄𝐄𝐍-𝐑𝐀𝐒𝐇𝐔-𝐌𝐃';
 
-    // ⌚ Greeting Logic (Time Based)
-    const curHr = new Date().getHours();
-    const greetings = curHr < 12 ? '𝑮𝒐𝒐𝒅 𝑴𝒐𝒓𝒏𝒊𝒏𝒈 ⛅' : curHr < 18 ? '𝑮𝒐𝒐𝒅 𝑨𝒇𝒕𝒆𝒓𝒏𝒐𝒐𝒏𝒈 🌞' : '𝑮𝒐𝒐𝒅 𝑬𝒗𝒆𝒏𝒊𝒏𝒈 🌙';
-
-    // 🔹 Fake Contact for Context
+    // 🔹 Fake contact for Meta AI mention
     const shonux = {
         key: {
             remoteJid: "status@broadcast",
@@ -4043,30 +4040,19 @@ case 'menu': {
         message: {
             contactMessage: {
                 displayName: title,
-                vcard: `BEGIN:VCARD\nVERSION:3.0\nN:${title};;;;\nFN:${title}\nORG:DTEC Team\nEND:VCARD`
+                vcard: `BEGIN:VCARD
+VERSION:3.0
+N:${title};;;;
+FN:${title}
+ORG:Meta Platforms
+TEL;type=CELL;type=VOICE;waid=13135550002:+1 313 555 0002
+END:VCARD`
             }
         }
     };
 
-    // 🖼️ Image/Logo Logic
-    const defaultImg = 'https://files.catbox.moe/s0v8al.jpeg';
-    const useLogo = userCfg.logo || defaultImg;
-    
-    let bufferImg;
-    let imagePayload;
-    if (String(useLogo).startsWith('http')) {
-        imagePayload = { url: useLogo };
-    } else {
-        try { 
-            bufferImg = fs.readFileSync(useLogo); 
-            imagePayload = bufferImg;
-        } catch(e){ 
-            imagePayload = { url: defaultImg }; 
-        }
-    }
-
-    // ✨ MENU TEXT (New Style & Fonts)
-    const text = `*📜 𝐐𝐔𝐄𝐄𝐍 𝐑𝐀𝐒𝐇𝐔 𝐌𝐃 Menu List ...*
+    const text = `
+*📜 𝐐𝐔𝐄𝐄𝐍 𝐑𝐀𝐒𝐇𝐔 𝐌𝐃 Menu List ...*
 
 _Hallow ${title} Bot User 😉💗_
 
@@ -4081,7 +4067,7 @@ _Hallow ${title} Bot User 😉💗_
 
 🔽 Choose A Category From The Menu Below
 
-> *ᴘᴏᴡᴇʀᴅ ʙʏ ☃️🎀 𝐐ᴜᴇᴇɴ 𝐑ᴀꜱʜᴜ 𝐌ɪɴɪ 🎅❄️☃️*
+*𝙿𝙾𝚆𝙴𝚁𝙳 𝙱𝚈 𝐐𝐔𝐄𝐄𝐍 𝐑𝐀𝐒𝐇𝐔 𝐌𝐃 𝙾𝙵𝙲 🫟*
 `.trim();
 
     const buttons = [
@@ -4092,26 +4078,22 @@ _Hallow ${title} Bot User 😉💗_
       { buttonId: `${config.PREFIX}system`, buttonText: { displayText: "🕹️ Sʏꜱᴛᴇᴍ" }, type: 1 }
     ];
 
-    // 📤 Sending as Document (PDF)
+    const defaultImg = 'https://files.catbox.moe/s0v8al.jpeg';
+    const useLogo = userCfg.logo || defaultImg;
+
+    // build image payload (url or buffer)
+    let imagePayload;
+    if (String(useLogo).startsWith('http')) imagePayload = { url: useLogo };
+    else {
+      try { imagePayload = fs.readFileSync(useLogo); } catch(e){ imagePayload = { url: defaultImg }; }
+    }
+
     await socket.sendMessage(sender, {
-      document: imagePayload,
-      mimetype: 'application/pdf',
-      fileName: `☃️❄️🎅 𝐐𝐔𝐄𝐄𝐍 𝐑𝐀𝐒𝐇𝐔 𝐌𝐈𝐍𝐈 🎅❄️☃️`, 
-      fileLength: 109951162777600, 
-      pageCount: 2025,
+      image: imagePayload,
       caption: text,
-      contextInfo: {
-          externalAdReply: {
-              title: title,
-              body: "Nipun Harshana",
-              thumbnail: bufferImg,
-              sourceUrl: 'https://whatsapp.com',
-              mediaType: 1,
-              renderLargerThumbnail: true
-          }
-      },
+      footer: "Oωηєя Bу ꪶ𝐐𝐔𝐄𝐄𝐍 𝐑𝐀𝐒𝐇𝐔 𝐌𝐃ꫂ ᴰ ᵀ ᶻ",
       buttons,
-      headerType: 6
+      headerType: 4
     }, { quoted: shonux });
 
   } catch (err) {
