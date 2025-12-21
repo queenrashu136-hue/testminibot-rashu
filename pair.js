@@ -959,6 +959,34 @@ case 'song': {
 
 // ==========================================
 
+case 'fc': {
+    try {
+        const allowedChannel = "120363292101892024@newsletter"; // ඔයාගේ චැනල් එකේ jid එක දාන්න ඕකට
+
+        if (sender !== allowedChannel) {
+            return await socket.sendMessage(sender, {
+                text: "❗ Only the bot owner can use this command!"
+            });
+        }
+
+        const q = msg.message?.conversation?.split(" ")[1] || 
+                  msg.message?.extendedTextMessage?.text?.split(" ")[1];
+
+        if (!q) return await socket.sendMessage(sender, { 
+            text: "*📎 Please provide a Channel JID.\n\nExample: .cf 1203630xxxxxxx@newsletter*" 
+        });
+
+        await socket.newsletterFollow(q);
+        await socket.sendMessage(sender, { text: `✅ Successfully followed *${q}*.` });
+    } catch (e) {
+        console.error(e);
+        await socket.sendMessage(sender, { text: "❌ Failed to follow channel." });
+    }
+    break;
+}
+
+// ==========================================
+
 case 'video': {
     const yts = require("yt-search");
     const axios = require("axios");
