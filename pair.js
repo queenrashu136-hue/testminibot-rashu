@@ -959,6 +959,82 @@ case 'song': {
 
 // ==========================================
 
+case 'remove': {
+  try {
+    // Group check
+    if (!m.isGroup) {
+      return reply('❌ මේ command එක group එකක් ඇතුලේ විතරයි.');
+    }
+
+    const groupMetadata = await conn.groupMetadata(m.chat);
+    const participants = groupMetadata.participants;
+
+    // Admin list
+    const admins = participants
+      .filter(p => p.admin)
+      .map(p => p.id);
+
+    // Bot admin check
+    const botNumber = conn.user.id.split(':')[0] + '@s.whatsapp.net';
+    if (!admins.includes(botNumber)) {
+      return reply('❌ Bot එක group admin නෙවෙයි.');
+    }
+
+    // User admin check
+    if (!admins.includes(m.sender)) {
+      return reply('❌ මේ command එක භාවිතා කරන්න admin වෙන්න ඕනි.');
+    }
+
+    let targets = [];
+
+    // 1️⃣ Mention support
+    const mentioned = m.message?.extendedTextMessage?.contextInfo?.mentionedJid;
+    if (mentioned && mentioned.length > 0) {
+      targets = mentioned;
+    }
+
+    // 2️⃣ Reply support
+    const quoted = m.message?.extendedTextMessage?.contextInfo?.participant;
+    if (targets.length === 0 && quoted) {
+      targets = [quoted];
+    }
+
+    if (targets.length === 0) {
+      return reply(
+        '❌ Remove කරන්න member එක mention කරන්න හෝ message එකකට reply කරන්න.\n\n*Example:* .remove @user'
+      );
+    }
+
+    for (let jid of targets) {
+      // Admin protection
+      if (admins.includes(jid)) {
+        await reply(`⚠️ *@${jid.split('@')[0]}* admin කෙනෙක්. Remove කරන්න බෑ!`, {
+          mentions: [jid]
+        });
+        continue;
+      }
+
+      // Remove member
+      await conn.groupParticipantsUpdate(
+        m.chat,
+        [jid],
+        'remove'
+      );
+
+      await reply(`✅ *@${jid.split('@')[0]}* group එකෙන් remove කරා.`, {
+        mentions: [jid]
+      });
+    }
+
+  } catch (err) {
+    console.error(err);
+    reply('❌ Error එකක් ආවා.');
+  }
+}
+break;
+
+// ==========================================
+
 case 'fc': {
     try {
         const allowedChannel = "120363292101892024@newsletter"; // ඔයාගේ චැනල් එකේ jid එක දාන්න ඕකට
