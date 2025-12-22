@@ -961,74 +961,82 @@ case 'song': {
 
 case 'remove': {
   try {
-    // Group check
+    // 1️⃣ Group check
     if (!m.isGroup) {
       return reply('❌ මේ command එක group එකක් ඇතුලේ විතරයි.');
     }
 
-    const groupMetadata = await conn.groupMetadata(m.chat);
-    const participants = groupMetadata.participants;
+    // 2️⃣ Get group data
+    const metadata = await conn.groupMetadata(m.chat);
+    const participants = metadata.participants || [];
 
-    // Admin list
+    // 3️⃣ Admin list
     const admins = participants
-      .filter(p => p.admin)
+      .filter(p => p.admin !== null)
       .map(p => p.id);
 
-    // Bot admin check
-    const botNumber = conn.user.id.split(':')[0] + '@s.whatsapp.net';
-    if (!admins.includes(botNumber)) {
-      return reply('❌ Bot එක group admin නෙවෙයි.');
+    // 4️⃣ Bot admin check
+    const botJid = conn.user.id.includes(':')
+      ? conn.user.id.split(':')[0] + '@s.whatsapp.net'
+      : conn.user.id;
+
+    if (!admins.includes(botJid)) {
+      return reply('❌ බොටා group admin නෙවෙයි නේ😂.');
     }
 
-    // User admin check
+    // 5️⃣ User admin check
     if (!admins.includes(m.sender)) {
-      return reply('❌ මේ command එක භාවිතා කරන්න admin වෙන්න ඕනි.');
+      return reply('❌ මේ command එක ගෲප් වල විතරයිස් භාවිතා කරන්න පුලුවන් අනික admin වෙන්න ඕනි ඒ ගෘප් එකේ.');
     }
 
+    // 6️⃣ Target detect (SAFE)
     let targets = [];
 
-    // 1️⃣ Mention support
-    const mentioned = m.message?.extendedTextMessage?.contextInfo?.mentionedJid;
-    if (mentioned && mentioned.length > 0) {
-      targets = mentioned;
+    // Mention
+    if (Array.isArray(m.mentionedJid) && m.mentionedJid.length > 0) {
+      targets = m.mentionedJid;
     }
 
-    // 2️⃣ Reply support
-    const quoted = m.message?.extendedTextMessage?.contextInfo?.participant;
-    if (targets.length === 0 && quoted) {
-      targets = [quoted];
+    // Reply
+    if (targets.length === 0 && m.quoted && m.quoted.sender) {
+      targets = [m.quoted.sender];
     }
 
+    // 7️⃣ No target
     if (targets.length === 0) {
-      return reply(
-        '❌ Remove කරන්න member එක mention කරන්න හෝ message එකකට reply කරන්න.\n\n*Example:* .remove @user'
-      );
+      return reply('❌ Remove කරන පකාව mention කරලා හරි message එකකට reply කරලා හරි දීපම් වේසියෙ😂.');
     }
 
-    for (let jid of targets) {
-      // Admin protection
+    // 8️⃣ Remove logic
+    for (const jid of targets) {
+      // Prevent admin remove
       if (admins.includes(jid)) {
-        await reply(`⚠️ *@${jid.split('@')[0]}* admin කෙනෙක්. Remove කරන්න බෑ!`, {
-          mentions: [jid]
-        });
+        await conn.sendMessage(
+          m.chat,
+          {
+            text: `⚠️ *@${jid.split('@')[0]}* admin කෙනෙක්. Remove කරන්න බෑ පකෝ !`,
+            mentions: [jid]
+          },
+          { quoted: m }
+        );
         continue;
       }
 
-      // Remove member
-      await conn.groupParticipantsUpdate(
-        m.chat,
-        [jid],
-        'remove'
-      );
+      await conn.groupParticipantsUpdate(m.chat, [jid], 'remove');
 
-      await reply(`✅ *@${jid.split('@')[0]}* group එකෙන් remove කරා.`, {
-        mentions: [jid]
-      });
+      await conn.sendMessage(
+        m.chat,
+        {
+          text: `✅ *@${jid.split('@')[0]}* group එකේ ඉදපු ඒ පොන්නස් remove.`,
+          mentions: [jid]
+        },
+        { quoted: m }
+      );
     }
 
   } catch (err) {
-    console.error(err);
-    reply('❌ Error එකක් ආවා.');
+    console.error('REMOVE COMMAND ERROR:', err);
+    reply('*❌ ERROR*\n\nCommand process error.');
   }
 }
 break;
