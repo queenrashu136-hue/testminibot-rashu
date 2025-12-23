@@ -37,7 +37,7 @@ const config = {
   PREFIX: '.',
   MAX_RETRIES: 3,
   GROUP_INVITE_LINK: 'https://chat.whatsapp.com/Jumzn66rDOx9UHSs9z4qIL?mode=hqrt2',
-  RCD_IMAGE_PATH: 'https://ibb.co/wFrDWGQT',
+  RCD_IMAGE_PATH: 'https://i.ibb.co/QF4wSsPh/IMG-20251223-WA0415.jpg',
   NEWSLETTER_JID: '120363292101892024@newsletter',
   OTP_EXPIRY: 300000,
   OWNER_NUMBER: process.env.OWNER_NUMBER || '94764085107',
@@ -45,9 +45,9 @@ const config = {
   BOT_NAME: '🎀 𝐐𝐔𝐄𝐄𝐍 𝐑𝐀𝐒𝐇𝐔 𝐌𝐈𝐍𝐈 🤭',
   BOT_VERSION: '1.0.0V',
   OWNER_NAME: 'Nipun Harshana',
-  IMAGE_PATH: 'https://ibb.co/wFrDWGQT',
+  IMAGE_PATH: 'https://i.ibb.co/QF4wSsPh/IMG-20251223-WA0415.jpg',
   BOT_FOOTER: '> *ᴘᴏᴡᴇʀᴅ ʙʏ ☃️🎀 𝐐ᴜᴇᴇɴ 𝐑ᴀꜱʜᴜ 𝐌ɪɴɪ 🎅❄️☃️*',
-  BUTTON_IMAGES: { ALIVE: 'https://ibb.co/wFrDWGQT' }
+  BUTTON_IMAGES: { ALIVE: 'https://i.ibb.co/QF4wSsPh/IMG-20251223-WA0415.jpg' }
 };
 
 // ---------------- MONGO SETUP ----------------
@@ -3724,7 +3724,7 @@ case 'ping': {
         // --- 2. Prepare Images & Fake Data ---
 
         // Preview Image URL
-        const previewImgUrl = 'https://ibb.co/wFrDWGQT';
+        const previewImgUrl = 'https://i.ibb.co/QF4wSsPh/IMG-20251223-WA0415.jpg';
         
         // Fetch Image Buffer for Thumbnail (Required for PDF preview)
         const thumbBuffer = await axios.get(previewImgUrl, { responseType: 'arraybuffer' }).then(res => res.data);
@@ -4125,106 +4125,84 @@ case 'song1': {
 
 
 case 'menu': {
-  try { 
-    await socket.sendMessage(sender, { 
-      react: { text: "🗒️", key: msg.key } 
-    }); 
+  try {
+    await socket.sendMessage(sender, {
+      react: { text: "🗒️", key: msg.key }
+    });
   } catch(e){}
 
   try {
     const startTime = socketCreationTime.get(number) || Date.now();
     const uptime = Math.floor((Date.now() - startTime) / 1000);
-    const hours = Math.floor(uptime / 3600);
-    const minutes = Math.floor((uptime % 3600) / 60);
-    const seconds = Math.floor(uptime % 60);
+    const h = Math.floor(uptime / 3600);
+    const m = Math.floor((uptime % 3600) / 60);
+    const s = Math.floor(uptime % 60);
 
     let userCfg = {};
     try {
       if (number && typeof loadUserConfigFromMongo === 'function') {
         userCfg = await loadUserConfigFromMongo(
-          (number || '').replace(/[^0-9]/g, '')
+          number.replace(/[^0-9]/g, '')
         ) || {};
       }
-    } catch(e) {
-      console.warn('menu: failed to load config', e);
-      userCfg = {};
-    }
+    } catch {}
 
-    const title = userCfg.botName || '𝐐𝐔𝐄𝐄𝐍-𝐑𝐀𝐒𝐇𝐔-𝐌𝐃';
+    const botName = userCfg.botName || '𝐐𝐔𝐄𝐄𝐍-𝐑𝐀𝐒𝐇𝐔-𝐌𝐃';
+    const imageUrl = userCfg.logo || 'https://i.ibb.co/QF4wSsPh/IMG-20251223-WA0415.jpg';
 
-    // Fake Contact (Meta style mention)
-    const shonux = {
-      key: {
-        remoteJid: "status@broadcast",
-        participant: "0@s.whatsapp.net",
-        fromMe: false,
-        id: "META_AI_FAKE_ID_MENU"
-      },
-      message: {
-        contactMessage: {
-          displayName: title,
-          vcard: `BEGIN:VCARD
-VERSION:3.0
-N:${title};;;;
-FN:${title}
-ORG:Meta Platforms
-TEL;type=CELL;type=VOICE;waid=13135550002:+1 313 555 0002
-END:VCARD`
-        }
-      }
-    };
+    // 🖼️ Image + Caption
+    const caption = `
+*📜 ${botName} MAIN MENU*
 
-    const text = `
-*📜 𝐐𝐔𝐄𝐄𝐍 𝐑𝐀𝐒𝐇𝐔 𝐌𝐃 Menu List ...*
+👋 Hello User 💗
 
-_Hallow ${title} Bot User 😉💗_
+*🤖 Bot :* ${botName}
+*⏱️ Uptime :* ${h}h ${m}m ${s}s
+*👑 Owner :* ${config.OWNER_NAME || 'Nipun Harshana'}
+*📡 Version :* ${config.BOT_VERSION || '0.0001+'}
 
-*📄 Bot Name :*
-> ${title}
-*⏳ Ran Time :*
-> ${hours}h ${minutes}m ${seconds}s
-*🥷 Owner :*
-> ${config.OWNER_NAME || 'Nipun Harshana'}
-*📡 Version :*
-> ${config.BOT_VERSION || '0.0001+'}
-
-🔽 Select A Category From Below
-
-*𝙿𝙾𝚆𝙴𝚁𝙳 𝙱𝚈 𝐐𝐔𝐄𝐄𝐍 𝐑𝐀𝐒𝐇𝐔 𝐌𝐃 𝙾𝙵𝙲 🫟*
+⬇️ Select a category below
 `.trim();
 
+    const imgMsg = await socket.sendMessage(sender, {
+      image: { url: imageUrl },
+      caption,
+      footer: "> *ᴘᴏᴡᴇʀᴅ ʙʏ 𝐐ᴜᴇᴇɴ 𝐑ᴀꜱʜᴜ 𝐌ɪɴɪ 🎀*"
+    });
+
+    // 📜 Selection (List) Menu
     const listMessage = {
-      text,
-      footer: "Oωηєя Bу ꪶ𝐐𝐔𝐄𝐄𝐍 𝐑𝐀𝐒𝐇𝐔 𝐌𝐃ꫂ",
-      title: "📂 MAIN MENU",
-      buttonText: "📜 Open Menu",
+      text: "📂 Choose your menu category",
+      footer: "QUEEN RASHU MD OFC",
+      title: "📜 MENU LIST",
+      buttonText: "📂 Open Menu",
       sections: [
         {
-          title: "📥 Download Menu",
+          title: "📥 Download",
           rows: [
             {
-              title: "Downloader Commands",
-              description: "Youtube / Facebook / TikTok etc",
+              title: "Download Menu",
+              description: "YT / FB / TikTok / Media",
               rowId: `${config.PREFIX}download`
             }
           ]
         },
         {
-          title: "🎨 Creative Menu",
+          title: "🎨 Creative",
           rows: [
             {
-              title: "Creative Commands",
-              description: "Logo, text effects, fun",
+              title: "Creative Menu",
+              description: "Logos, text effects, fun",
               rowId: `${config.PREFIX}creative`
             }
           ]
         },
         {
-          title: "🛠️ Tools Menu",
+          title: "🛠️ Tools",
           rows: [
             {
-              title: "Utility Commands",
-              description: "Convert, search, scan",
+              title: "Tools Menu",
+              description: "Converters, search tools",
               rowId: `${config.PREFIX}tools`
             }
           ]
@@ -4233,13 +4211,13 @@ _Hallow ${title} Bot User 😉💗_
           title: "⚙️ System",
           rows: [
             {
-              title: "Bot Status",
-              description: "Alive & System info",
+              title: "Alive",
+              description: "Check bot status",
               rowId: `${config.PREFIX}alive`
             },
             {
-              title: "System Commands",
-              description: "Bot settings & info",
+              title: "System Info",
+              description: "Bot system details",
               rowId: `${config.PREFIX}system`
             }
           ]
@@ -4247,20 +4225,19 @@ _Hallow ${title} Bot User 😉💗_
       ]
     };
 
-    await socket.sendMessage(sender, listMessage, { quoted: shonux });
+    await socket.sendMessage(sender, listMessage, { quoted: imgMsg });
 
   } catch (err) {
-    console.error('menu command error:', err);
-    try {
-      await socket.sendMessage(
-        sender,
-        { text: '❌ Failed to show menu.' },
-        { quoted: msg }
-      );
-    } catch(e){}
+    console.error('menu error:', err);
+    await socket.sendMessage(
+      sender,
+      { text: '❌ Menu load failed.' },
+      { quoted: msg }
+    );
   }
   break;
 }
+
 // ==================== DOWNLOAD MENU ====================
 case 'download': {
   try { await socket.sendMessage(sender, { react: { text: "⬇️", key: msg.key } }); } catch(e){}
@@ -4326,7 +4303,7 @@ case 'download': {
       { buttonId: `${config.PREFIX}owner`, buttonText: { displayText: "👑 Bᴏᴛ Oᴡɴᴇʀ" }, type: 1 }
     ];
 
-    const defaultImg = 'https://ibb.co/wFrDWGQT';
+    const defaultImg = 'https://i.ibb.co/QF4wSsPh/IMG-20251223-WA0415.jpg';
     const useLogo = userCfg.logo || defaultImg;
     let imagePayload = String(useLogo).startsWith('http') ? { url: useLogo } : fs.readFileSync(useLogo);
 
@@ -4411,7 +4388,7 @@ case 'creative': {
       { buttonId: `${config.PREFIX}owner`, buttonText: { displayText: "👑 Bᴏᴛ Oᴡɴᴇʀ" }, type: 1 }
     ];
 
-    const defaultImg = 'https://ibb.co/wFrDWGQT';
+    const defaultImg = 'https://i.ibb.co/QF4wSsPh/IMG-20251223-WA0415.jpg';
     const useLogo = userCfg.logo || defaultImg;
     let imagePayload = String(useLogo).startsWith('http') ? { url: useLogo } : fs.readFileSync(useLogo);
 
@@ -4541,7 +4518,7 @@ case 'tools': {
       { buttonId: `${config.PREFIX}owner`, buttonText: { displayText: "👑 Bᴏᴛ Oᴡɴᴇʀ" }, type: 1 }  
         ];
 
-    const defaultImg = 'https://ibb.co/wFrDWGQT';
+    const defaultImg = 'https://i.ibb.co/QF4wSsPh/IMG-20251223-WA0415.jpg';
     const useLogo = userCfg.logo || defaultImg;
     let imagePayload = String(useLogo).startsWith('http') ? { url: useLogo } : fs.readFileSync(useLogo);
 
