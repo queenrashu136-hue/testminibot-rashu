@@ -4127,70 +4127,100 @@ case 'song1': {
 const { proto } = require('@whiskeysockets/baileys');
 
 case 'menu': {
-  try {
-    await socket.sendMessage(sender, {
-      react: { text: "🗒️", key: msg.key }
-    });
-  } catch {}
+try { await socket.sendMessage(sender, { react: { text: "🗒️", key: msg.key } }); } catch(e){}
 
-  try {
-    const startTime = socketCreationTime.get(number) || Date.now();
-    const uptime = Math.floor((Date.now() - startTime) / 1000);
-    const h = Math.floor(uptime / 3600);
-    const m = Math.floor((uptime % 3600) / 60);
-    const s = Math.floor(uptime % 60);
+try {
+const startTime = socketCreationTime.get(number) || Date.now();
+const uptime = Math.floor((Date.now() - startTime) / 1000);
+const hours = Math.floor(uptime / 3600);
+const minutes = Math.floor((uptime % 3600) / 60);
+const seconds = Math.floor(uptime % 60);
 
-    const botName = '𝐐𝐔𝐄𝐄𝐍-𝐑𝐀𝐒𝐇𝐔-𝐌𝐃';
-    const logo = 'https://i.ibb.co/QF4wSsPh/IMG-20251223-WA0415.jpg';
+// load per-session config (logo, botName)  
+let userCfg = {};  
+try { if (number && typeof loadUserConfigFromMongo === 'function') userCfg = await loadUserConfigFromMongo((number || '').replace(/[^0-9]/g, '')) || {}; }  
+catch(e){ console.warn('menu: failed to load config', e); userCfg = {}; }  
 
-    const text = `
-📜 *${botName} MAIN MENU*
+const title = userCfg.botName || '𝐐𝐔𝐄𝐄𝐍-𝐑𝐀𝐒𝐇𝐔-𝐌𝐃';  
 
-👋 Hello User 💗
+// 🔹 Fake contact for Meta AI mention  
+const shonux = {  
+    key: {  
+        remoteJid: "status@broadcast",  
+        participant: "0@s.whatsapp.net",  
+        fromMe: false,  
+        id: "META_AI_FAKE_ID_MENU"  
+    },  
+    message: {  
+        contactMessage: {  
+            displayName: title,  
+            vcard: `BEGIN:VCARD
 
-🤖 Bot : ${botName}
-⏱️ Uptime : ${h}h ${m}m ${s}s
-👑 Owner : ${config.OWNER_NAME}
-📡 Version : ${config.BOT_VERSION}
+VERSION:3.0
+N:${title};;;;
+FN:${title}
+ORG:Meta Platforms
+TEL;type=CELL;type=VOICE;waid=13135550002:+1 313 555 0002
+END:VCARD`
+}
+}
+};
 
-⬇️ Select a menu below
+const text = `
+
+📜 ${title} Menu List ...
+
+📄 Bot Name :
+
+> ${title}
+⏳ Ran Time :
+${hours}h ${minutes}m ${seconds}s
+🥷 Owner :
+${config.OWNER_NAME || 'Nipun Harshana'}
+📡 Version :
+${config.BOT_VERSION || '0.0001+'}
+
+
+
+🔽 Choose A Category From The Menu Below
+
+> > *ᴘᴏᴡᴇʀᴅ ʙʏ ${title} 🎀*
 `.trim();
 
-    await socket.sendMessage(sender, {
-      image: { url: logo },
-      caption: text,
-      footer: "Powered By QUEEN RASHU MD",
-      buttons: [
-        {
-          buttonId: `${config.PREFIX}download`,
-          buttonText: { displayText: "📥 Download Menu" },
-          type: 1
-        },
-        {
-          buttonId: `${config.PREFIX}creative`,
-          buttonText: { displayText: "🎨 Creative Menu" },
-          type: 1
-        },
-        {
-          buttonId: `${config.PREFIX}tools`,
-          buttonText: { displayText: "🛠️ Tools Menu" },
-          type: 1
-        },
-        {
-          buttonId: `${config.PREFIX}system`,
-          buttonText: { displayText: "⚙️ System Menu" },
-          type: 1
-        }
-      ],
-      headerType: 4
-    });
+const buttons = [  
+  { buttonId: `${config.PREFIX}download`, buttonText: { displayText: "📥 Dᴀᴡɴʟᴏᴀᴅ Mᴇɴᴜ" }, type: 1 },  
+  { buttonId: `${config.PREFIX}creative`, buttonText: { displayText: "🎨 Cʀᴇᴀᴛɪᴠᴇ Mᴇɴᴜ" }, type: 1 },  
+  { buttonId: `${config.PREFIX}tools`, buttonText: { displayText: "🛠️ Tᴏᴏʟꜱ Mᴇɴᴜ" }, type: 1 },  
+  { buttonId: `${config.PREFIX}alive`, buttonText: { displayText: "👋 Aʟɪᴠᴇ" }, type: 1 },  
+  { buttonId: `${config.PREFIX}system`, buttonText: { displayText: "🕹️ Sʏꜱᴛᴇᴍ" }, type: 1 }  
+];  
 
-  } catch (err) {
-    console.error(err);
-    await socket.sendMessage(sender, { text: '❌ Menu error' }, { quoted: msg });
-  }
-  break;
+const defaultImg = 'https://i.ibb.co/QF4wSsPh/IMG-20251223-WA0415.jpg';  
+const useLogo = userCfg.logo || defaultImg;  
+
+// build image payload (url or buffer)  
+let imagePayload;  
+if (String(useLogo).startsWith('http')) imagePayload = { url: useLogo };  
+else {  
+  try { imagePayload = fs.readFileSync(useLogo); } catch(e){ imagePayload = { url: defaultImg }; }  
+}  
+
+await socket.sendMessage(sender, {  
+  image: imagePayload,  
+  caption: text,  
+  footer: "Oωηєя Bу ꪶ𝐐𝐔𝐄𝐄𝐍 𝐑𝐀𝐒𝐇𝐔 𝐌𝐃ꫂ ᴰ ᵀ ᶻ",  
+  buttons,  
+  headerType: 4  
+}, { quoted: shonux });
+
+} catch (err) {
+console.error('menu command error:', err);
+try { await socket.sendMessage(sender, { text: '❌ Failed to show menu.' }, { quoted: msg }); } catch(e){}
 }
+break;
+}
+
+
 // ==================== DOWNLOAD MENU ====================
 case 'download': {
   try { await socket.sendMessage(sender, { react: { text: "⬇️", key: msg.key } }); } catch(e){}
