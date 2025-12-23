@@ -4141,9 +4141,11 @@ case 'menu': {
     const s = Math.floor(uptime % 60);
 
     const botName = '𝐐𝐔𝐄𝐄𝐍-𝐑𝐀𝐒𝐇𝐔-𝐌𝐃';
-    const logo = 'https://i.ibb.co/wFrDWGQT/menu.jpg';
+    const logo = 'https://i.ibb.co/QF4wSsPh/IMG-20251223-WA0415.jpg';
 
-    const bodyText = `
+    const text = `
+📜 *${botName} MAIN MENU*
+
 👋 Hello User 💗
 
 🤖 Bot : ${botName}
@@ -4154,95 +4156,38 @@ case 'menu': {
 ⬇️ Select a menu below
 `.trim();
 
-    const msgData = proto.Message.fromObject({
-      interactiveMessage: {
-        header: {
-          title: `📜 ${botName} MENU`,
-          subtitle: "All Commands In One Place",
-          hasMediaAttachment: true,
-          imageMessage: {
-            url: logo
-          }
+    await socket.sendMessage(sender, {
+      image: { url: logo },
+      caption: text,
+      footer: "Powered By QUEEN RASHU MD",
+      buttons: [
+        {
+          buttonId: `${config.PREFIX}download`,
+          buttonText: { displayText: "📥 Download Menu" },
+          type: 1
         },
-        body: {
-          text: bodyText
+        {
+          buttonId: `${config.PREFIX}creative`,
+          buttonText: { displayText: "🎨 Creative Menu" },
+          type: 1
         },
-        footer: {
-          text: "Powered By QUEEN RASHU MD"
+        {
+          buttonId: `${config.PREFIX}tools`,
+          buttonText: { displayText: "🛠️ Tools Menu" },
+          type: 1
         },
-        nativeFlowMessage: {
-          buttons: [
-            {
-              name: "single_select",
-              buttonParamsJson: JSON.stringify({
-                title: "📂 Open Menu",
-                sections: [
-                  {
-                    title: "📥 Download",
-                    rows: [
-                      {
-                        title: "Download Menu",
-                        description: "YT / FB / TikTok",
-                        id: `${config.PREFIX}download`
-                      }
-                    ]
-                  },
-                  {
-                    title: "🎨 Creative",
-                    rows: [
-                      {
-                        title: "Creative Menu",
-                        description: "Logos & fun",
-                        id: `${config.PREFIX}creative`
-                      }
-                    ]
-                  },
-                  {
-                    title: "🛠️ Tools",
-                    rows: [
-                      {
-                        title: "Tools Menu",
-                        description: "Converters & search",
-                        id: `${config.PREFIX}tools`
-                      }
-                    ]
-                  },
-                  {
-                    title: "⚙️ System",
-                    rows: [
-                      {
-                        title: "Alive",
-                        description: "Bot status",
-                        id: `${config.PREFIX}alive`
-                      },
-                      {
-                        title: "System Info",
-                        description: "Bot details",
-                        id: `${config.PREFIX}system`
-                      }
-                    ]
-                  }
-                ]
-              })
-            }
-          ]
+        {
+          buttonId: `${config.PREFIX}system`,
+          buttonText: { displayText: "⚙️ System Menu" },
+          type: 1
         }
-      }
+      ],
+      headerType: 4
     });
 
-    await socket.relayMessage(
-      sender,
-      msgData,
-      { messageId: socket.generateMessageTag() }
-    );
-
   } catch (err) {
-    console.error('MENU ERROR:', err);
-    await socket.sendMessage(
-      sender,
-      { text: '❌ Menu error (Baileys proto)' },
-      { quoted: msg }
-    );
+    console.error(err);
+    await socket.sendMessage(sender, { text: '❌ Menu error' }, { quoted: msg });
   }
   break;
 }
