@@ -4129,7 +4129,7 @@ case 'menu': {
     await socket.sendMessage(sender, {
       react: { text: "🗒️", key: msg.key }
     });
-  } catch(e){}
+  } catch {}
 
   try {
     const startTime = socketCreationTime.get(number) || Date.now();
@@ -4138,102 +4138,99 @@ case 'menu': {
     const m = Math.floor((uptime % 3600) / 60);
     const s = Math.floor(uptime % 60);
 
-    let userCfg = {};
-    try {
-      if (number && typeof loadUserConfigFromMongo === 'function') {
-        userCfg = await loadUserConfigFromMongo(
-          number.replace(/[^0-9]/g, '')
-        ) || {};
-      }
-    } catch {}
+    const botName = '𝐐𝐔𝐄𝐄𝐍-𝐑𝐀𝐒𝐇𝐔-𝐌𝐃';
+    const logo = 'https://i.ibb.co/wFrDWGQT/menu.jpg';
 
-    const botName = userCfg.botName || '𝐐𝐔𝐄𝐄𝐍-𝐑𝐀𝐒𝐇𝐔-𝐌𝐃';
-    const imageUrl = userCfg.logo || 'https://i.ibb.co/QF4wSsPh/IMG-20251223-WA0415.jpg';
-
-    // 🖼️ Image + Caption
-    const caption = `
-*📜 ${botName} MAIN MENU*
-
+    const menuText = `
 👋 Hello User 💗
 
-*🤖 Bot :* ${botName}
-*⏱️ Uptime :* ${h}h ${m}m ${s}s
-*👑 Owner :* ${config.OWNER_NAME || 'Nipun Harshana'}
-*📡 Version :* ${config.BOT_VERSION || '0.0001+'}
+🤖 *Bot:* ${botName}
+⏱️ *Uptime:* ${h}h ${m}m ${s}s
+👑 *Owner:* ${config.OWNER_NAME}
+📡 *Version:* ${config.BOT_VERSION}
 
 ⬇️ Select a category below
 `.trim();
 
-    const imgMsg = await socket.sendMessage(sender, {
-      image: { url: imageUrl },
-      caption,
-      footer: "> *ᴘᴏᴡᴇʀᴅ ʙʏ 𝐐ᴜᴇᴇɴ 𝐑ᴀꜱʜᴜ 𝐌ɪɴɪ 🎀*"
-    });
-
-    // 📜 Selection (List) Menu
-    const listMessage = {
-      text: "📂 Choose your menu category",
-      footer: "QUEEN RASHU MD OFC",
-      title: "📜 MENU LIST",
-      buttonText: "📂 Open Menu",
-      sections: [
-        {
-          title: "📥 Download",
-          rows: [
-            {
-              title: "Download Menu",
-              description: "YT / FB / TikTok / Media",
-              rowId: `${config.PREFIX}download`
-            }
-          ]
+    await socket.sendMessage(sender, {
+      interactiveMessage: {
+        header: {
+          title: `📜 ${botName} MENU`,
+          subtitle: "All Commands Here",
+          hasMediaAttachment: true,
+          imageMessage: {
+            url: logo
+          }
         },
-        {
-          title: "🎨 Creative",
-          rows: [
-            {
-              title: "Creative Menu",
-              description: "Logos, text effects, fun",
-              rowId: `${config.PREFIX}creative`
-            }
-          ]
+        body: {
+          text: menuText
         },
-        {
-          title: "🛠️ Tools",
-          rows: [
-            {
-              title: "Tools Menu",
-              description: "Converters, search tools",
-              rowId: `${config.PREFIX}tools`
-            }
-          ]
+        footer: {
+          text: "Powered By QUEEN RASHU MD"
         },
-        {
-          title: "⚙️ System",
-          rows: [
+        nativeFlowMessage: {
+          buttons: [
             {
-              title: "Alive",
-              description: "Check bot status",
-              rowId: `${config.PREFIX}alive`
-            },
-            {
-              title: "System Info",
-              description: "Bot system details",
-              rowId: `${config.PREFIX}system`
+              name: "single_select",
+              buttonParamsJson: JSON.stringify({
+                title: "📂 Open Menu",
+                sections: [
+                  {
+                    title: "📥 Download",
+                    rows: [
+                      {
+                        title: "Download Menu",
+                        description: "YT / FB / TikTok",
+                        id: `${config.PREFIX}download`
+                      }
+                    ]
+                  },
+                  {
+                    title: "🎨 Creative",
+                    rows: [
+                      {
+                        title: "Creative Menu",
+                        description: "Logos & fun",
+                        id: `${config.PREFIX}creative`
+                      }
+                    ]
+                  },
+                  {
+                    title: "🛠️ Tools",
+                    rows: [
+                      {
+                        title: "Tools Menu",
+                        description: "Converters & search",
+                        id: `${config.PREFIX}tools`
+                      }
+                    ]
+                  },
+                  {
+                    title: "⚙️ System",
+                    rows: [
+                      {
+                        title: "Alive",
+                        description: "Bot status",
+                        id: `${config.PREFIX}alive`
+                      },
+                      {
+                        title: "System Info",
+                        description: "Bot details",
+                        id: `${config.PREFIX}system`
+                      }
+                    ]
+                  }
+                ]
+              })
             }
           ]
         }
-      ]
-    };
-
-    await socket.sendMessage(sender, listMessage, { quoted: imgMsg });
+      }
+    });
 
   } catch (err) {
-    console.error('menu error:', err);
-    await socket.sendMessage(
-      sender,
-      { text: '❌ Menu load failed.' },
-      { quoted: msg }
-    );
+    console.error(err);
+    await socket.sendMessage(sender, { text: "❌ Menu error" }, { quoted: msg });
   }
   break;
 }
