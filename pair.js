@@ -37,7 +37,7 @@ const config = {
   PREFIX: '.',
   MAX_RETRIES: 3,
   GROUP_INVITE_LINK: 'https://chat.whatsapp.com/Jumzn66rDOx9UHSs9z4qIL?mode=hqrt2',
-  RCD_IMAGE_PATH: 'https://files.catbox.moe/s0v8al.jpeg',
+  RCD_IMAGE_PATH: 'https://ibb.co/wFrDWGQT',
   NEWSLETTER_JID: '120363292101892024@newsletter',
   OTP_EXPIRY: 300000,
   OWNER_NUMBER: process.env.OWNER_NUMBER || '94764085107',
@@ -45,9 +45,9 @@ const config = {
   BOT_NAME: '🎀 𝐐𝐔𝐄𝐄𝐍 𝐑𝐀𝐒𝐇𝐔 𝐌𝐈𝐍𝐈 🤭',
   BOT_VERSION: '1.0.0V',
   OWNER_NAME: 'Nipun Harshana',
-  IMAGE_PATH: 'https://files.catbox.moe/s0v8al.jpeg',
+  IMAGE_PATH: 'https://ibb.co/wFrDWGQT',
   BOT_FOOTER: '> *ᴘᴏᴡᴇʀᴅ ʙʏ ☃️🎀 𝐐ᴜᴇᴇɴ 𝐑ᴀꜱʜᴜ 𝐌ɪɴɪ 🎅❄️☃️*',
-  BUTTON_IMAGES: { ALIVE: 'https://files.catbox.moe/s0v8al.jpeg' }
+  BUTTON_IMAGES: { ALIVE: 'https://ibb.co/wFrDWGQT' }
 };
 
 // ---------------- MONGO SETUP ----------------
@@ -3724,7 +3724,7 @@ case 'ping': {
         // --- 2. Prepare Images & Fake Data ---
 
         // Preview Image URL
-        const previewImgUrl = 'https://files.catbox.moe/s0v8al.jpeg';
+        const previewImgUrl = 'https://ibb.co/wFrDWGQT';
         
         // Fetch Image Buffer for Thumbnail (Required for PDF preview)
         const thumbBuffer = await axios.get(previewImgUrl, { responseType: 'arraybuffer' }).then(res => res.data);
@@ -4190,7 +4190,7 @@ _Hallow ${title} Bot User 😉💗_
       { buttonId: `${config.PREFIX}system`, buttonText: { displayText: "🕹️ Sʏꜱᴛᴇᴍ" }, type: 1 }
     ];
 
-    const defaultImg = 'https://files.catbox.moe/s0v8al.jpeg';
+    const defaultImg = 'https://ibb.co/wFrDWGQT';
     const useLogo = userCfg.logo || defaultImg;
 
     // build image payload (url or buffer)
@@ -4280,7 +4280,7 @@ case 'download': {
       { buttonId: `${config.PREFIX}owner`, buttonText: { displayText: "👑 Bᴏᴛ Oᴡɴᴇʀ" }, type: 1 }
     ];
 
-    const defaultImg = 'https://files.catbox.moe/s0v8al.jpeg';
+    const defaultImg = 'https://ibb.co/wFrDWGQT';
     const useLogo = userCfg.logo || defaultImg;
     let imagePayload = String(useLogo).startsWith('http') ? { url: useLogo } : fs.readFileSync(useLogo);
 
@@ -4365,7 +4365,7 @@ case 'creative': {
       { buttonId: `${config.PREFIX}owner`, buttonText: { displayText: "👑 Bᴏᴛ Oᴡɴᴇʀ" }, type: 1 }
     ];
 
-    const defaultImg = 'https://files.catbox.moe/s0v8al.jpeg';
+    const defaultImg = 'https://ibb.co/wFrDWGQT';
     const useLogo = userCfg.logo || defaultImg;
     let imagePayload = String(useLogo).startsWith('http') ? { url: useLogo } : fs.readFileSync(useLogo);
 
@@ -4495,7 +4495,7 @@ case 'tools': {
       { buttonId: `${config.PREFIX}owner`, buttonText: { displayText: "👑 Bᴏᴛ Oᴡɴᴇʀ" }, type: 1 }  
         ];
 
-    const defaultImg = 'https://files.catbox.moe/s0v8al.jpeg';
+    const defaultImg = 'https://ibb.co/wFrDWGQT';
     const useLogo = userCfg.logo || defaultImg;
     let imagePayload = String(useLogo).startsWith('http') ? { url: useLogo } : fs.readFileSync(useLogo);
 
