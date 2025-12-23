@@ -4125,7 +4125,11 @@ case 'song1': {
 
 
 case 'menu': {
-  try { await socket.sendMessage(sender, { react: { text: "🗒️", key: msg.key } }); } catch(e){}
+  try { 
+    await socket.sendMessage(sender, { 
+      react: { text: "🗒️", key: msg.key } 
+    }); 
+  } catch(e){}
 
   try {
     const startTime = socketCreationTime.get(number) || Date.now();
@@ -4134,33 +4138,40 @@ case 'menu': {
     const minutes = Math.floor((uptime % 3600) / 60);
     const seconds = Math.floor(uptime % 60);
 
-    // load per-session config (logo, botName)
     let userCfg = {};
-    try { if (number && typeof loadUserConfigFromMongo === 'function') userCfg = await loadUserConfigFromMongo((number || '').replace(/[^0-9]/g, '')) || {}; }
-    catch(e){ console.warn('menu: failed to load config', e); userCfg = {}; }
+    try {
+      if (number && typeof loadUserConfigFromMongo === 'function') {
+        userCfg = await loadUserConfigFromMongo(
+          (number || '').replace(/[^0-9]/g, '')
+        ) || {};
+      }
+    } catch(e) {
+      console.warn('menu: failed to load config', e);
+      userCfg = {};
+    }
 
     const title = userCfg.botName || '𝐐𝐔𝐄𝐄𝐍-𝐑𝐀𝐒𝐇𝐔-𝐌𝐃';
 
-    // 🔹 Fake contact for Meta AI mention
+    // Fake Contact (Meta style mention)
     const shonux = {
-        key: {
-            remoteJid: "status@broadcast",
-            participant: "0@s.whatsapp.net",
-            fromMe: false,
-            id: "META_AI_FAKE_ID_MENU"
-        },
-        message: {
-            contactMessage: {
-                displayName: title,
-                vcard: `BEGIN:VCARD
+      key: {
+        remoteJid: "status@broadcast",
+        participant: "0@s.whatsapp.net",
+        fromMe: false,
+        id: "META_AI_FAKE_ID_MENU"
+      },
+      message: {
+        contactMessage: {
+          displayName: title,
+          vcard: `BEGIN:VCARD
 VERSION:3.0
 N:${title};;;;
 FN:${title}
 ORG:Meta Platforms
 TEL;type=CELL;type=VOICE;waid=13135550002:+1 313 555 0002
 END:VCARD`
-            }
         }
+      }
     };
 
     const text = `
@@ -4177,44 +4188,79 @@ _Hallow ${title} Bot User 😉💗_
 *📡 Version :*
 > ${config.BOT_VERSION || '0.0001+'}
 
-🔽 Choose A Category From The Menu Below
+🔽 Select A Category From Below
 
 *𝙿𝙾𝚆𝙴𝚁𝙳 𝙱𝚈 𝐐𝐔𝐄𝐄𝐍 𝐑𝐀𝐒𝐇𝐔 𝐌𝐃 𝙾𝙵𝙲 🫟*
 `.trim();
 
-    const buttons = [
-      { buttonId: `${config.PREFIX}download`, buttonText: { displayText: "📥 Dᴀᴡɴʟᴏᴀᴅ Mᴇɴᴜ" }, type: 1 },
-      { buttonId: `${config.PREFIX}creative`, buttonText: { displayText: "🎨 Cʀᴇᴀᴛɪᴠᴇ Mᴇɴᴜ" }, type: 1 },
-      { buttonId: `${config.PREFIX}tools`, buttonText: { displayText: "🛠️ Tᴏᴏʟꜱ Mᴇɴᴜ" }, type: 1 },
-      { buttonId: `${config.PREFIX}alive`, buttonText: { displayText: "👋 Aʟɪᴠᴇ" }, type: 1 },
-      { buttonId: `${config.PREFIX}system`, buttonText: { displayText: "🕹️ Sʏꜱᴛᴇᴍ" }, type: 1 }
-    ];
+    const listMessage = {
+      text,
+      footer: "Oωηєя Bу ꪶ𝐐𝐔𝐄𝐄𝐍 𝐑𝐀𝐒𝐇𝐔 𝐌𝐃ꫂ",
+      title: "📂 MAIN MENU",
+      buttonText: "📜 Open Menu",
+      sections: [
+        {
+          title: "📥 Download Menu",
+          rows: [
+            {
+              title: "Downloader Commands",
+              description: "Youtube / Facebook / TikTok etc",
+              rowId: `${config.PREFIX}download`
+            }
+          ]
+        },
+        {
+          title: "🎨 Creative Menu",
+          rows: [
+            {
+              title: "Creative Commands",
+              description: "Logo, text effects, fun",
+              rowId: `${config.PREFIX}creative`
+            }
+          ]
+        },
+        {
+          title: "🛠️ Tools Menu",
+          rows: [
+            {
+              title: "Utility Commands",
+              description: "Convert, search, scan",
+              rowId: `${config.PREFIX}tools`
+            }
+          ]
+        },
+        {
+          title: "⚙️ System",
+          rows: [
+            {
+              title: "Bot Status",
+              description: "Alive & System info",
+              rowId: `${config.PREFIX}alive`
+            },
+            {
+              title: "System Commands",
+              description: "Bot settings & info",
+              rowId: `${config.PREFIX}system`
+            }
+          ]
+        }
+      ]
+    };
 
-    const defaultImg = 'https://ibb.co/wFrDWGQT';
-    const useLogo = userCfg.logo || defaultImg;
-
-    // build image payload (url or buffer)
-    let imagePayload;
-    if (String(useLogo).startsWith('http')) imagePayload = { url: useLogo };
-    else {
-      try { imagePayload = fs.readFileSync(useLogo); } catch(e){ imagePayload = { url: defaultImg }; }
-    }
-
-    await socket.sendMessage(sender, {
-      image: imagePayload,
-      caption: text,
-      footer: "Oωηєя Bу ꪶ𝐐𝐔𝐄𝐄𝐍 𝐑𝐀𝐒𝐇𝐔 𝐌𝐃ꫂ ᴰ ᵀ ᶻ",
-      buttons,
-      headerType: 4
-    }, { quoted: shonux });
+    await socket.sendMessage(sender, listMessage, { quoted: shonux });
 
   } catch (err) {
     console.error('menu command error:', err);
-    try { await socket.sendMessage(sender, { text: '❌ Failed to show menu.' }, { quoted: msg }); } catch(e){}
+    try {
+      await socket.sendMessage(
+        sender,
+        { text: '❌ Failed to show menu.' },
+        { quoted: msg }
+      );
+    } catch(e){}
   }
   break;
 }
-
 // ==================== DOWNLOAD MENU ====================
 case 'download': {
   try { await socket.sendMessage(sender, { react: { text: "⬇️", key: msg.key } }); } catch(e){}
