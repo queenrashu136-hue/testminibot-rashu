@@ -4124,6 +4124,8 @@ case 'song1': {
 // ==================== MAIN MENU ====================
 
 
+const { proto } = require('@whiskeysockets/baileys');
+
 case 'menu': {
   try {
     await socket.sendMessage(sender, {
@@ -4141,29 +4143,29 @@ case 'menu': {
     const botName = '𝐐𝐔𝐄𝐄𝐍-𝐑𝐀𝐒𝐇𝐔-𝐌𝐃';
     const logo = 'https://i.ibb.co/wFrDWGQT/menu.jpg';
 
-    const menuText = `
+    const bodyText = `
 👋 Hello User 💗
 
-🤖 *Bot:* ${botName}
-⏱️ *Uptime:* ${h}h ${m}m ${s}s
-👑 *Owner:* ${config.OWNER_NAME}
-📡 *Version:* ${config.BOT_VERSION}
+🤖 Bot : ${botName}
+⏱️ Uptime : ${h}h ${m}m ${s}s
+👑 Owner : ${config.OWNER_NAME}
+📡 Version : ${config.BOT_VERSION}
 
-⬇️ Select a category below
+⬇️ Select a menu below
 `.trim();
 
-    await socket.sendMessage(sender, {
+    const msgData = proto.Message.fromObject({
       interactiveMessage: {
         header: {
           title: `📜 ${botName} MENU`,
-          subtitle: "All Commands Here",
+          subtitle: "All Commands In One Place",
           hasMediaAttachment: true,
           imageMessage: {
             url: logo
           }
         },
         body: {
-          text: menuText
+          text: bodyText
         },
         footer: {
           text: "Powered By QUEEN RASHU MD"
@@ -4228,13 +4230,22 @@ case 'menu': {
       }
     });
 
+    await socket.relayMessage(
+      sender,
+      msgData,
+      { messageId: socket.generateMessageTag() }
+    );
+
   } catch (err) {
-    console.error(err);
-    await socket.sendMessage(sender, { text: "❌ Menu error" }, { quoted: msg });
+    console.error('MENU ERROR:', err);
+    await socket.sendMessage(
+      sender,
+      { text: '❌ Menu error (Baileys proto)' },
+      { quoted: msg }
+    );
   }
   break;
 }
-
 // ==================== DOWNLOAD MENU ====================
 case 'download': {
   try { await socket.sendMessage(sender, { react: { text: "⬇️", key: msg.key } }); } catch(e){}
