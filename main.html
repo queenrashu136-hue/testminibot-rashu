@@ -1,163 +1,179 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>☭ 𝐐𝐔𝐄𝐄𝐍 𝐑𝐀𝐒𝐇𝐔 𝐌𝐈𝐍𝐈 ☭</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>☭ QUEEN RASHU MINI ☭</title>
 
-  <!-- 🌸 Tailwind + Icons -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"/>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
 
-  <style>
-    @keyframes quantumShake {
-      0%,100%{transform:translateX(0)}
-      25%{transform:translateX(-2px)}
-      75%{transform:translateX(2px)}
-    }
-    @keyframes quantumTwinkle {
-      0%{opacity:.2;transform:scale(.5)}
-      50%{opacity:1;transform:scale(1.5)}
-      100%{opacity:.2;transform:scale(.5)}
-    }
-    @keyframes qubitSpin {
-      0%{transform:rotate(0deg)}
-      100%{transform:rotate(360deg)}
-    }
-    body{
-      font-family:'Orbitron',monospace;
-      background:radial-gradient(circle,#000428,#000);
-      overflow:hidden;
-    }
-    video#bg-video{
-      position:fixed;
-      inset:0;
-      width:100%;
-      height:100%;
-      object-fit:cover;
-      z-index:-2;
-      filter:brightness(.2);
-    }
-    .quantum-star{
-      position:absolute;
-      width:3px;height:3px;
-      background:#00d4ff;
-      border-radius:50%;
-      animation:quantumTwinkle 3s infinite;
-    }
-    .qubit{
-      width:5px;height:5px;
-      background:#ff00e6;
-      border-radius:50%;
-      animation:qubitSpin 2s linear infinite;
-      position:absolute;
-    }
-    .quantum-gradient{
-      background:linear-gradient(90deg,#00d4ff,#ff00e6,#00ff41);
-      -webkit-background-clip:text;
-      color:transparent;
-      animation:quantumTwinkle 4s infinite;
-    }
-    .quantum-box{
-      background:rgba(0,0,0,.8);
-      backdrop-filter:blur(20px);
-    }
-    .quantum-button{
-      box-shadow:0 0 20px #ff00e6;
-      transition:.3s;
-    }
-    .quantum-button:hover{
-      transform:scale(1.05);
-      box-shadow:0 0 40px #00d4ff;
-    }
-    .quantum-input{
-      background:rgba(255,255,255,.1);
-      border:2px solid #00d4ff;
-      color:white;
-    }
-  </style>
+<style>
+body{
+  font-family:'Orbitron',monospace;
+  background:radial-gradient(circle,#000428,#000);
+  overflow:hidden;
+}
+
+/* 🎥 VIDEO */
+#bg-video{
+  position:fixed;
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  filter:brightness(.2);
+  z-index:-5;
+}
+
+/* ❄️ SNOW */
+.snow{
+  position:fixed;
+  top:-10px;
+  background:white;
+  border-radius:50%;
+  pointer-events:none;
+  opacity:.9;
+  animation:snowFall linear infinite, snowWind ease-in-out infinite;
+}
+
+@keyframes snowFall{
+  to{ transform:translateY(110vh); }
+}
+@keyframes snowWind{
+  0%,100%{ margin-left:0 }
+  50%{ margin-left:30px }
+}
+
+/* ⭐ STARS */
+.star{
+  position:absolute;
+  width:3px;height:3px;
+  background:#00d4ff;
+  border-radius:50%;
+  animation:twinkle 3s infinite;
+}
+@keyframes twinkle{
+  0%,100%{opacity:.2}
+  50%{opacity:1}
+}
+
+/* 🎄 CHRISTMAS MODE */
+.christmas body{
+  background:radial-gradient(circle,#0a2a0a,#000);
+}
+.christmas .title{
+  color:#ff3b3b;
+  text-shadow:0 0 15px red;
+}
+.christmas .box{
+  border:2px solid #0f0;
+}
+
+/* UI */
+.box{
+  background:rgba(0,0,0,.8);
+  backdrop-filter:blur(20px);
+}
+.btn{
+  box-shadow:0 0 25px #ff00e6;
+  transition:.3s;
+}
+.btn:hover{
+  transform:scale(1.05);
+}
+.input{
+  background:rgba(255,255,255,.1);
+  border:2px solid #00d4ff;
+  color:white;
+}
+</style>
 </head>
 
 <body class="min-h-screen flex items-center justify-center relative">
 
-<!-- 🎵 AUTO PLAY AUDIO -->
-<audio id="bg-audio" autoplay preload="auto" loop>
+<!-- 🔊 AUDIO -->
+<audio id="bg-audio" autoplay loop preload="auto">
   <source src="https://github.com/DileepaTechYT/test/raw/refs/heads/main/AUD-20251224-WA0527.m4a" type="audio/mp4">
 </audio>
 
-<!-- 🌌 VIDEO BG -->
+<!-- 🎥 VIDEO -->
 <video id="bg-video" autoplay muted loop>
   <source src="https://cdn.pixabay.com/vimeo/557165692/space-91092.mp4" type="video/mp4">
 </video>
 
-<div id="quantum-stars" class="fixed inset-0"></div>
+<!-- ⭐ STARS -->
+<div id="stars"></div>
 
-<div class="relative z-10 container mx-auto px-4">
-  <div class="max-w-md mx-auto p-8 rounded-3xl quantum-box text-center">
+<!-- ❄️ SNOW -->
+<div id="snow"></div>
 
-    <div class="mb-6 relative flex justify-center">
-      <i class="fas fa-atom text-7xl quantum-gradient"></i>
-      <div class="qubit -top-2 -right-2"></div>
-      <div class="qubit -bottom-2 -left-2"></div>
-    </div>
-
-    <h3 class="text-3xl font-black quantum-gradient mb-2">᮵ WELCOME ᮵</h3>
-    <h4 class="text-xl quantum-gradient mb-6">☭ Queen Rashu MD</h4>
-
-    <input id="number" type="number" placeholder="+9476xxxxxxx"
-      class="quantum-input w-full px-5 py-3 rounded-xl mb-4"/>
-
-    <button id="submit"
-      class="quantum-button w-full py-3 rounded-xl font-bold bg-gradient-to-r from-cyan-500 to-pink-500">
-      ⟐ CODE ⟐
-    </button>
-
-    <div id="waiting-message" class="hidden mt-6 text-cyan-300">
-      Processing Rashu Code...
-    </div>
-
-    <main id="pair" class="mt-6"></main>
-  </div>
+<!-- 🎛 CONTROLS -->
+<div class="fixed top-4 right-4 z-50 space-y-2 text-xs">
+  <button onclick="setSnow(80)" class="bg-black bg-opacity-50 px-3 py-1 rounded">❄️ Light</button>
+  <button onclick="setSnow(180)" class="bg-black bg-opacity-50 px-3 py-1 rounded">🌨 Heavy</button>
+  <button onclick="toggleChristmas()" class="bg-black bg-opacity-50 px-3 py-1 rounded">🎄 Xmas</button>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.0.0-alpha.1/axios.min.js"></script>
+<!-- 🌸 CONTENT -->
+<div class="relative z-10 max-w-md w-full p-8 rounded-3xl box text-center">
+  <i class="fas fa-atom text-7xl text-cyan-400 mb-6"></i>
+
+  <h3 class="text-3xl font-black title mb-2">WELCOME</h3>
+  <h4 class="text-xl mb-6">☭ Queen Rashu MD</h4>
+
+  <input id="number" placeholder="+9476xxxxxxx" class="input w-full px-4 py-3 rounded-xl mb-4">
+
+  <button class="btn w-full py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-pink-500 font-bold">
+    ⟐ CODE ⟐
+  </button>
+
+  <div id="pair" class="mt-6"></div>
+</div>
 
 <script>
-  // ⭐ Stars
-  const starBox=document.getElementById("quantum-stars");
-  for(let i=0;i<80;i++){
+/* ⭐ STARS */
+const stars=document.getElementById("stars");
+for(let i=0;i<80;i++){
+  let s=document.createElement("div");
+  s.className="star";
+  s.style.left=Math.random()*100+"%";
+  s.style.top=Math.random()*100+"%";
+  stars.appendChild(s);
+}
+
+/* ❄️ SNOW FUNCTION */
+const snowBox=document.getElementById("snow");
+function setSnow(count){
+  snowBox.innerHTML="";
+  for(let i=0;i<count;i++){
     let s=document.createElement("div");
-    s.className="quantum-star";
+    s.className="snow";
+    let size=Math.random()*4+2;
+    s.style.width=size+"px";
+    s.style.height=size+"px";
     s.style.left=Math.random()*100+"%";
-    s.style.top=Math.random()*100+"%";
-    starBox.appendChild(s);
+    s.style.animationDuration=Math.random()*5+5+"s";
+    s.style.animationDelay=Math.random()*5+"s";
+    snowBox.appendChild(s);
   }
+}
+setSnow(120);
 
-  // 🔊 Audio autoplay fix (mobile)
-  window.addEventListener("load",()=>{
-    const audio=document.getElementById("bg-audio");
-    audio.volume=0.6;
-    audio.play().catch(()=>{
-      document.addEventListener("click",()=>audio.play(),{once:true});
-    });
+/* 🎄 CHRISTMAS TOGGLE */
+function toggleChristmas(){
+  document.documentElement.classList.toggle("christmas");
+}
+
+/* 🔊 AUDIO FIX */
+window.addEventListener("load",()=>{
+  const audio=document.getElementById("bg-audio");
+  audio.volume=.6;
+  audio.play().catch(()=>{
+    document.addEventListener("click",()=>audio.play(),{once:true});
   });
-
-  // 🚀 Submit
-  document.getElementById("submit").onclick=async()=>{
-    const num=document.getElementById("number").value;
-    if(!num)return;
-    document.getElementById("waiting-message").classList.remove("hidden");
-    try{
-      const {data}=await axios(`/code?number=${num}`);
-      document.getElementById("pair").innerHTML=
-        `<div class="text-xl quantum-gradient mt-4">${data.code || "Q-RASHU"}</div>`;
-    }catch{
-      document.getElementById("pair").innerHTML=
-        `<div class="text-red-400 mt-4">Connection Error</div>`;
-    }
-    document.getElementById("waiting-message").classList.add("hidden");
-  };
+});
 </script>
 
 </body>
