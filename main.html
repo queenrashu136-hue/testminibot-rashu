@@ -17,13 +17,14 @@
       overflow:hidden;
     }
 
-    video#bg-video{
+    /* 🎥 VIDEO */
+    #bg-video{
       position:fixed;
       inset:0;
       width:100%;
       height:100%;
       object-fit:cover;
-      z-index:-3;
+      z-index:-4;
       filter:brightness(.2);
     }
 
@@ -40,11 +41,10 @@
     }
 
     @keyframes snowFall{
-      0%{transform:translateY(0)}
-      100%{transform:translateY(110vh)}
+      to{ transform:translateY(110vh); }
     }
 
-    /* 🌌 STARS */
+    /* ⭐ STARS */
     .quantum-star{
       position:absolute;
       width:3px;height:3px;
@@ -88,20 +88,20 @@
 
 <body class="min-h-screen flex items-center justify-center relative">
 
-<!-- 🎵 AUTO PLAY AUDIO -->
-<audio id="bg-audio" autoplay loop preload="auto">
+<!-- 🎵 AUDIO (INSTANT AUTOPLAY FIX) -->
+<audio id="bg-audio" autoplay loop muted playsinline preload="auto">
   <source src="https://github.com/DileepaTechYT/test/raw/refs/heads/main/AUD-20251224-WA0527.m4a" type="audio/mp4">
 </audio>
 
-<!-- 🌌 VIDEO BACKGROUND -->
-<video id="bg-video" autoplay muted loop>
+<!-- 🎥 VIDEO BACKGROUND -->
+<video id="bg-video" autoplay muted loop playsinline>
   <source src="https://cdn.pixabay.com/vimeo/557165692/space-91092.mp4" type="video/mp4">
 </video>
 
 <!-- ⭐ STARS -->
 <div id="quantum-stars" class="fixed inset-0"></div>
 
-<!-- ❄️ SNOW CONTAINER -->
+<!-- ❄️ SNOW -->
 <div id="snow-container"></div>
 
 <!-- 🌸 CONTENT -->
@@ -133,21 +133,21 @@
 
 <script>
   /* ⭐ STARS */
-  const stars=document.getElementById("quantum-stars");
+  const stars = document.getElementById("quantum-stars");
   for(let i=0;i<80;i++){
-    let s=document.createElement("div");
+    const s=document.createElement("div");
     s.className="quantum-star";
     s.style.left=Math.random()*100+"%";
     s.style.top=Math.random()*100+"%";
     stars.appendChild(s);
   }
 
-  /* ❄️ SNOW GENERATOR */
+  /* ❄️ SNOW */
   const snowBox=document.getElementById("snow-container");
   for(let i=0;i<120;i++){
-    let snow=document.createElement("div");
+    const snow=document.createElement("div");
     snow.className="snow";
-    let size=Math.random()*4+2;
+    const size=Math.random()*4+2;
     snow.style.width=size+"px";
     snow.style.height=size+"px";
     snow.style.left=Math.random()*100+"%";
@@ -156,12 +156,17 @@
     snowBox.appendChild(snow);
   }
 
-  /* 🔊 AUDIO AUTOPLAY FIX */
+  /* 🎵 INSTANT AUTOPLAY UNMUTE */
   window.addEventListener("load",()=>{
     const audio=document.getElementById("bg-audio");
     audio.volume=0.6;
-    audio.play().catch(()=>{
-      document.addEventListener("click",()=>audio.play(),{once:true});
+    audio.play().then(()=>{
+      setTimeout(()=>{ audio.muted=false; },300);
+    }).catch(()=>{
+      document.addEventListener("click",()=>{
+        audio.muted=false;
+        audio.play();
+      },{once:true});
     });
   });
 </script>
