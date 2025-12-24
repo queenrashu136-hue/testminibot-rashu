@@ -4191,12 +4191,14 @@ case 'menu': {
   } catch(e){}
 
   try {
+    // Uptime calculation
     const startTime = socketCreationTime.get(number) || Date.now();
     const uptime = Math.floor((Date.now() - startTime) / 1000);
     const hours = Math.floor(uptime / 3600);
     const minutes = Math.floor((uptime % 3600) / 60);
     const seconds = Math.floor(uptime % 60);
 
+    // Load user config
     let userCfg = {};
     try {
       if (number && typeof loadUserConfigFromMongo === 'function') {
@@ -4211,103 +4213,59 @@ case 'menu': {
 
     const title = userCfg.botName || '𝐐𝐔𝐄𝐄𝐍-𝐑𝐀𝐒𝐇𝐔-𝐌𝐃';
 
-    // Fake Contact (Meta style mention)
-    const shonux = {
-      key: {
-        remoteJid: "status@broadcast",
-        participant: "0@s.whatsapp.net",
-        fromMe: false,
-        id: "META_AI_FAKE_ID_MENU"
-      },
-      message: {
-        contactMessage: {
-          displayName: title,
-          vcard: `BEGIN:VCARD
-VERSION:3.0
-N:${title};;;;
-FN:${title}
-ORG:Meta Platforms
-TEL;type=CELL;type=VOICE;waid=13135550002:+1 313 555 0002
-END:VCARD`
-        }
-      }
-    };
-
+    // Menu text
     const text = `
 *📜 𝐐𝐔𝐄𝐄𝐍 𝐑𝐀𝐒𝐇𝐔 𝐌𝐃 Menu List ...*
 
 _Hallow ${title} Bot User 😉💗_
 
-*📄 Bot Name :*
-> ${title}
-*⏳ Ran Time :*
-> ${hours}h ${minutes}m ${seconds}s
-*🥷 Owner :*
-> ${config.OWNER_NAME || 'Nipun Harshana'}
-*📡 Version :*
-> ${config.BOT_VERSION || '0.0001+'}
+*📄 Bot Name :* > ${title}
+*⏳ Ran Time :* > ${hours}h ${minutes}m ${seconds}s
+*🥷 Owner :* > ${config.OWNER_NAME || 'Nipun Harshana'}
+*📡 Version :* > ${config.BOT_VERSION || '0.0001+'}
 
 🔽 Select A Category From Below
+`;
 
-*𝙿𝙾𝚆𝙴𝚁𝙳 𝙱𝚈 𝐐𝐔𝐄𝐄𝐍 𝐑𝐀𝐒𝐇𝐔 𝐌𝐃 𝙾𝙵𝙲 🫟*
-`.trim();
-
+    // Full menu with image + buttons + descriptions
     const listMessage = {
-      image: { url: "https://i.ibb.co/QF4wSsPh/IMG-20251223-WA0415.jpg" }, // ඔය image URL එක
+      image: { url: "https://i.ibb.co/QF4wSsPh/IMG-20251223-WA0415.jpg" },
       caption: text,
       footer: "Oωηєя Bу ꪶ𝐐𝐔𝐄𝐄𝐍 𝐑𝐀𝐒𝐇𝐔 𝐌𝐃ꫂ",
-      title: "📂 MAIN MENU",
-      buttonText: "📜 Open Menu",
-      sections: [
+      templateButtons: [
         {
-          title: "📥 Download Menu",
-          rows: [
-            {
-              title: "Downloader Commands",
-              description: "Youtube / Facebook / TikTok etc",
-              rowId: `${config.PREFIX}download`
-            }
-          ]
+          index: 1,
+          quickReplyButton: { 
+            displayText: '📥 Download Menu', 
+            id: `${config.PREFIX}download` 
+          }
         },
         {
-          title: "🎨 Creative Menu",
-          rows: [
-            {
-              title: "Creative Commands",
-              description: "Logo, text effects, fun",
-              rowId: `${config.PREFIX}creative`
-            }
-          ]
+          index: 2,
+          quickReplyButton: { 
+            displayText: '🎨 Creative Menu', 
+            id: `${config.PREFIX}creative` 
+          }
         },
         {
-          title: "🛠️ Tools Menu",
-          rows: [
-            {
-              title: "Utility Commands",
-              description: "Convert, search, scan",
-              rowId: `${config.PREFIX}tools`
-            }
-          ]
+          index: 3,
+          quickReplyButton: { 
+            displayText: '🛠️ Tools Menu', 
+            id: `${config.PREFIX}tools` 
+          }
         },
         {
-          title: "⚙️ System",
-          rows: [
-            {
-              title: "Bot Status",
-              description: "Alive & System info",
-              rowId: `${config.PREFIX}alive`
-            },
-            {
-              title: "System Commands",
-              description: "Bot settings & info",
-              rowId: `${config.PREFIX}system`
-            }
-          ]
+          index: 4,
+          quickReplyButton: { 
+            displayText: '⚙️ System', 
+            id: `${config.PREFIX}system` 
+          }
         }
       ]
     };
 
-    await socket.sendMessage(sender, listMessage, { quoted: shonux });
+    // Send the menu as single message
+    await socket.sendMessage(sender, listMessage, { quoted: msg });
 
   } catch (err) {
     console.error('menu command error:', err);
@@ -4321,7 +4279,6 @@ _Hallow ${title} Bot User 😉💗_
   }
   break;
 }
-
 // ==================== DOWNLOAD MENU ====================
 case 'download': {
   try { await socket.sendMessage(sender, { react: { text: "⬇️", key: msg.key } }); } catch(e){}
