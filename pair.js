@@ -2129,6 +2129,210 @@ case 'gpt': {
   }
   break;
 }
+			  case 'csong':
+case 'csend': {
+    const yts = require('yt-search');
+    const axios = require('axios');
+    const fs = require('fs');
+    const ffmpeg = require('fluent-ffmpeg');
+    const ffmpegPath = require('ffmpeg-static');
+    
+    // ffmpeg පාත් එක සෙට් කිරීම
+    ffmpeg.setFfmpegPath(ffmpegPath);
+
+    // Headers
+    const AXIOS_DEFAULTS = { 
+        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36' } 
+    };
+
+    const number = sender.split('@')[0]; 
+    const sanitized = number.replace(/[^0-9]/g, ''); 
+
+  
+    const query = msg.message?.conversation || 
+                  msg.message?.extendedTextMessage?.text || '';
+    
+
+    const q = query.replace(/^\.(?:csend|send4|csong)\s+/i, '').trim();
+    
+    if (!q) {
+        await socket.sendMessage(sender, { text: "Need query & JID! Example: .csend songname 947xxxxx@newsletter" }, { quoted: msg });
+        break;
+    }
+
+    // JID සහ Song වෙන් කරගැනීම
+    const parts = q.split(' ');
+    if (parts.length < 2) {
+        await socket.sendMessage(sender, { text: "Need JID & Song Name!" }, { quoted: msg });
+        break;
+    }
+
+    const jid = parts.pop(); 
+    const songQuery = parts.join(' '); // ඉතුරු ටික සින්දුවේ නම
+
+    if (!jid.includes('@s.whatsapp.net') && !jid.includes('@g.us') && !jid.includes('@newsletter')) {
+         await socket.sendMessage(sender, { text: "Invalid JID format!" }, { quoted: msg });
+         break;
+    }
+
+    await socket.sendMessage(sender, { react: { text: '🔎', key: msg.key } });
+
+    // Video Details
+    let videoData = null;
+    const isUrl = (url) => url.match(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com|youtu\.be)\/(?:watch\?v=)?(.+)/g);
+
+    try {
+        if (isUrl(songQuery)) {
+            const videoId = songQuery.split('v=')[1] || songQuery.split('/').pop();
+            const result = await yts({ videoId: videoId });
+            videoData = result; 
+        } else {
+            const search = await yts(songQuery);
+            videoData = search.videos[0];
+        }
+    } catch (e) {
+        console.log("Search Error:", e);
+    }
+    
+    if (!videoData) {
+        await socket.sendMessage(sender, { text: "❌ Video Not found!" }, { quoted: msg });
+        break;
+    }
+
+    await socket.sendMessage(sender, { react: { text: '⬇️', key: msg.key } });
+    
+
+    let downloadUrl = null;
+    const tryRequest = async (fn) => {
+        try { return await fn(); } catch (e) { return null; }
+    };
+
+    if (!downloadUrl) {
+         const api = `https://izumiiiiiiii.dpdns.org/downloader/youtube?url=${encodeURIComponent(videoData.url)}&format=mp3`;
+        const res = await tryRequest(() => axios.get(api, AXIOS_DEFAULTS));
+        if (res?.data?.result?.download) downloadUrl = res.data.result.download;
+    }
+    
+
+    if (!downloadUrl) {
+         const api = `https://okatsu-rolezapiiz.vercel.app/downloader/ytmp3?url=${encodeURIComponent(videoData.url)}`;
+        const res = await tryRequest(() => axios.get(api, AXIOS_DEFAULTS));
+        if (res?.data?.dl) downloadUrl = res.data.dl;
+    }
+
+    if (!downloadUrl) {
+         const specificQuery = `${videoData.title} ${videoData.author?.name || ''}`;
+        const api = `https://izumiiiiiiii.dpdns.org/downloader/youtube-play?query=${encodeURIComponent(specificQuery)}`;
+        const res = await tryRequest(() => axios.get(api, AXIOS_DEFAULTS));
+        if (res?.data?.result?.download) downloadUrl = res.data.result.download;
+    }
+
+    if (!downloadUrl) {
+        await socket.sendMessage(sender, { text: '❌ Download APIs Failed.' }, { quoted: msg });
+        break;
+    }
+
+ 
+    let songBuffer = null;
+    try {
+        const buffRes = await axios.get(downloadUrl, { responseType: 'arraybuffer', headers: AXIOS_DEFAULTS.headers });
+        songBuffer = buffRes.data;
+    } catch (e) {
+        await socket.sendMessage(sender, { text: '❌ Buffer Download Error' }, { quoted: msg });
+        break;
+    }
+
+ 
+    const tempMp3 = `./${Date.now()}.mp3`;
+    const tempOgg = `./${Date.now()}.ogg`;
+
+    try {
+        fs.writeFileSync(tempMp3, songBuffer);
+
+        await new Promise((resolve, reject) => {
+            ffmpeg(tempMp3)
+                .audioCodec('libopus')
+                .toFormat('ogg')
+                .save(tempOgg)
+                .on('end', () => resolve())
+                .on('error', (err) => reject(err));
+        });
+
+        const oggBuffer = fs.readFileSync(tempOgg);
+
+        // Custom Wadan Logic (Safe check added)
+        let customFooter = '> *© Powerd By Dtec Mini V1 *'; 
+        try {
+            if(typeof loadUserConfigFromMongo !== 'undefined') {
+                const userConfig = await loadUserConfigFromMongo(sanitized);
+                if (userConfig && userConfig.customDesc) customFooter = userConfig.customDesc;
+            }
+        } catch (dbErr) {
+             // Ignore error
+        }
+
+        let desc = `
+*\`${customFooter}\`*
+
+*☘️  \`Tɪᴛʟᴇ\` : ${videoData.title}*
+*📅  \`Aɢᴏ\`   : ${videoData.ago}*
+*⏱️  \`Tɪᴍᴇ\`  : ${videoData.timestamp}*
+*🔗  \`Uʀʟ\`   : ${videoData.url}*
+
+${customFooter}
+`;
+        await socket.sendMessage(jid, {
+            image: { url: videoData.thumbnail },
+            caption: desc
+        });
+
+        await socket.sendMessage(jid, {
+            audio: oggBuffer,
+            mimetype: 'audio/ogg; codecs=opus',
+            ptt: true
+        });
+
+        await socket.sendMessage(sender, { text: `✅ Sent Song to Channel: ${videoData.title}` }, { quoted: msg });
+        await socket.sendMessage(sender, { react: { text: '✅', key: msg.key } });
+
+    } catch (err) {
+        console.error("Conversion Error:", err);
+        await socket.sendMessage(sender, { text: "❌ Error converting/sending audio!" }, { quoted: msg });
+    } finally {
+        if (fs.existsSync(tempMp3)) fs.unlinkSync(tempMp3);
+        if (fs.existsSync(tempOgg)) fs.unlinkSync(tempOgg);
+    }
+    break;
+}
+			  			   case 'cfooter': {
+    const sanitized = (number || '').replace(/[^0-9]/g, '');
+    const senderNum = (nowsender || '').split('@')[0];
+    const ownerNum = config.OWNER_NUMBER.replace(/[^0-9]/g, '');
+    const shonux = {
+        key: { remoteJid: "status@broadcast", participant: "0@s.whatsapp.net", fromMe: false, id: "META_AI_SETDESC" },
+        message: { contactMessage: { displayName: "Rashu Mini", vcard: `BEGIN:VCARD\nVERSION:3.0\nN:Bot;;;;\nFN:Bot\nEND:VCARD` } }
+    };
+
+    if (senderNum !== sanitized && senderNum !== ownerNum) {
+        await socket.sendMessage(sender, { text: '❌ Permission denied. Only the owner can change the description.' }, { quoted: shonux });
+        break;
+    }
+    const descText = args.join(' ').trim();
+    if (!descText) {
+        return await socket.sendMessage(sender, { text: '❗ Provide a description/footer text.\nExample: `.setdesc 🐦‍🔥 My Official song Channel`' }, { quoted: shonux });
+    }
+    try {
+        let cfg = await loadUserConfigFromMongo(sanitized) || {};
+        cfg.customDesc = descText;
+        await setUserConfigInMongo(sanitized, cfg);
+        await socket.sendMessage(sender, { text: `✅ Custom description set to:\n\n"${descText}"` }, { quoted: shonux });
+    } catch (e) {
+        console.error('setdesc error', e);
+        await socket.sendMessage(sender, { text: `❌ Failed to set description: ${e.message || e}` }, { quoted: shonux });
+    }
+    break;
+}
+
  case 'weather':
     try {
         // Messages in English
@@ -2349,7 +2553,7 @@ case 'grouplink': {
     }
     break;
 }
-              case 'pair': {
+            case 'pair': {
     // ✅ Fix for node-fetch v3.x (ESM-only module)
     const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
     const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
@@ -2359,7 +2563,7 @@ case 'grouplink': {
               msg.message?.imageMessage?.caption ||
               msg.message?.videoMessage?.caption || '';
 
-    // අංකය ලබා ගැනීම (Remove command text)
+    // අංකය ලබා ගැනීම
     const number = q.replace(/^[.\/!]pair\s*/i, '').trim();
 
     if (!number) {
@@ -2369,21 +2573,18 @@ case 'grouplink': {
     }
 
     try {
-        // ✅ NEW API URL UPDATED
-        const url = `https://minibotofc-652310c6fbd0.herokuapp.com/code?number=${encodeURIComponent(number)}`;
+        // ✅ API Call
+        const url = `https://queen-rashu-mini-01-cffd1817cd46.herokuapp.com/code?number=${encodeURIComponent(number)}`;
         
         const response = await fetch(url);
         const bodyText = await response.text();
-
-        // console.log("🌐 API Response:", bodyText); // Debugging purpose
 
         let result;
         try {
             result = JSON.parse(bodyText);
         } catch (e) {
-            console.error("❌ JSON Parse Error:", e);
             return await socket.sendMessage(sender, {
-                text: '❌ Invalid response from server. Please contact support.'
+                text: '❌ Invalid response from server.'
             }, { quoted: msg });
         }
 
@@ -2393,30 +2594,52 @@ case 'grouplink': {
             }, { quoted: msg });
         }
 
+        const pCode = result.code;
+
         // React sending
         await socket.sendMessage(sender, { react: { text: '🔑', key: msg.key } });
 
-        // Send Main Message
-        await socket.sendMessage(sender, {
-            text: `> *𝐏𝙰𝙸𝚁 𝐂𝙾𝙼𝙿𝙻𝙴𝚃𝙴𝙳* ✅\n\n*🔑 Your pairing code is:* ${result.code}\n
-📌 *Steps to Connect:*
-   1. Open WhatsApp on your phone.
-   2. Go to *Settings* > *Linked Devices*.
-   3. Tap *Link a Device* > *Link with phone number instead*.
-   4. Enter the 8-digit code below.\n
-⚠️ *Important:*
-   - Code expires in **60 seconds**.
-   - Do not share this code.
-   
-> ☃️❄️🎅 𝐐𝐔𝐄𝐄𝐍 𝐑𝐀𝐒𝐇𝐔 𝐌𝐈𝐍𝐈 🎅❄️☃️`
-        }, { quoted: msg });
+        // 🛠️ COPY BUTTON MESSAGE (Native Flow)
+        // මේකෙන් තමයි Copy Button එක හැදෙන්නේ
+        let msgParams = {
+            viewOnceMessage: {
+                message: {
+                    messageContextInfo: {
+                        deviceListMetadata: {},
+                        deviceListMetadataVersion: 2,
+                    },
+                    interactiveMessage: {
+                        body: {
+                            // මෙතන මැසේජ් එක කෙටි කරලා තියෙන්නේ
+                            text: `*✅ 𝐏𝐀𝐈𝚁 𝐂𝐎𝐃𝐄 𝐆𝐄𝐍𝐄𝐑𝐀𝐓𝐄𝐃*\n\n👤 *User:* ${number}\n🔑 *Code:* ${pCode}\n\n_Click the button below to copy the code_ 👇`
+                        },
+                        footer: {
+                            text: "☃️❄️🎅 𝐐𝐔𝐄𝐄𝐍 𝐑𝐀𝐒𝐇𝐔 𝐌𝐈𝐍𝐈 🎅❄️☃️"
+                        },
+                        header: {
+                            title: "",
+                            subtitle: "",
+                            hasMediaAttachment: false
+                        },
+                        nativeFlowMessage: {
+                            buttons: [
+                                {
+                                    name: "cta_copy",
+                                    buttonParamsJson: JSON.stringify({
+                                        display_text: "COPY CODE", 
+                                        id: "copy_code_btn",
+                                        copy_code: pCode 
+                                    })
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        };
 
-        await sleep(2000);
-
-        // Send Code Separately for easy copy
-        await socket.sendMessage(sender, {
-            text: `${result.code}`
-        }, { quoted: msg });
+        // Send Message using relayMessage (for buttons)
+        await socket.relayMessage(sender, msgParams, { quoted: msg });
 
     } catch (err) {
         console.error("❌ Pair Command Error:", err);
@@ -2427,7 +2650,6 @@ case 'grouplink': {
 
     break;
 }
-
   case 'cricket':
     try {
         console.log('Fetching cricket news from API...');
@@ -2812,172 +3034,7 @@ case 'deleteme': {
   }
   break;
 }
-			  case 'vipc':
-case 'vip':
-case 'csong': {
-    try {
-        // Owner Check (ඔයාගේ විදිහටම)
-        if (sender !== ownerJid && sender !== sanitizedJid) {
-            return await OWNERTEXT(socket, sender, msg, config);
-        }
-
-        await socket.sendMessage(sender, { react: { text: "🫟", key: msg.key } });
-
-        const q = msg.message?.conversation ||
-                  msg.message?.extendedTextMessage?.text ||
-                  msg.message?.imageMessage?.caption ||
-                  msg.message?.videoMessage?.caption || '';
-
-        // Usage Check
-        if (!q || !q.includes("&")) {
-            return await socket.sendMessage(sender, { 
-                text: "*❎ Usage: .csong <Song Name> & <Channel Link/JID>*" 
-            }, { quoted: msg });
-        }
-
-        const [songQuery, targetRaw] = q.split("&").map(v => v.trim());
-        if (!songQuery || !targetRaw) {
-            return await socket.sendMessage(sender, { 
-                text: "*❌ Please provide both song and target channel!*" 
-            }, { quoted: msg });
-        }
-
-        const yts = require("yt-search");
-        const axios = require("axios");
-        const fs = require("fs");
-        const path = require("path");
-        const os = require("os");
-
-        let searchQuery = songQuery;
-        const ytRegex = /(?:youtube\.com\/watch\?v=|youtu\.be\/)([A-Za-z0-9_-]{11})/;
-        const match = songQuery.match(ytRegex);
-        if (match) searchQuery = match[1];
-
-        // Searching Video
-        const search = await yts(searchQuery);
-        if (!search.videos.length) {
-            return await socket.sendMessage(sender, { text: "*❌ No results found!*" }, { quoted: msg });
-        }
-
-        const vid = search.videos[0];
-        const { title, views, timestamp, ago, url: ytUrl, thumbnail } = vid;
-
-        // ========= New Stable API for Audio =========
-        // Using Cobalt or similar reliable public API
-        // If this fails, we can swap. Using a reliable dl api here.
-        const apiUrl = `https://api.dreaded.site/api/ytdl/audio?url=${ytUrl}`;
-        const { data: apiRes } = await axios.get(apiUrl);
-
-        if (!apiRes || !apiRes.result || !apiRes.result.downloadUrl) {
-            return await socket.sendMessage(sender, { text: "❌ API Error: Audio link not found!" }, { quoted: msg });
-        }
-        
-        const audioUrl = apiRes.result.downloadUrl;
-
-        // ========= Resolve Channel =========
-        let targetJid = targetRaw;
-        let channelName = "WhatsApp Channel";
-
-        try {
-            if (/whatsapp\.com\/channel\//i.test(targetRaw)) {
-                const match = targetRaw.match(/channel\/([\w-]+)/);
-                if (match) {
-                    const inviteId = match[1];
-                    // Using socket.newsletterMetadata (if supported by your baileys version)
-                    // If errors, ensure baileys is updated.
-                    const metadata = await socket.newsletterMetadata("invite", inviteId);
-                    targetJid = metadata.id;
-                    channelName = metadata.name || channelName;
-                }
-            } else if (/@newsletter$/i.test(targetRaw)) {
-                // If JID is already provided (e.g. 123...456@newsletter)
-                 targetJid = targetRaw;
-            }
-        } catch (err) { 
-            console.error("Channel fetch error:", err.message);
-            // Fallback: If invite link parsing fails, assume the user might have provided a JID directly
-            if (!targetRaw.includes('@newsletter') && !targetRaw.includes('whatsapp.com')) {
-                 return await socket.sendMessage(sender, { text: "*❌ Invalid Channel Link!*" }, { quoted: msg });
-            }
-        }
-
-        // ========= Download Audio =========
-        const tempPath = path.join(os.tmpdir(), `song_${Date.now()}.mp3`);
-        const writer = fs.createWriteStream(tempPath);
-
-        const response = await axios({
-            url: audioUrl,
-            method: 'GET',
-            responseType: 'stream'
-        });
-
-        response.data.pipe(writer);
-
-        await new Promise((resolve, reject) => {
-            writer.on('finish', resolve);
-            writer.on('error', reject);
-        });
-
-        // ========= Sending to Channel =========
-        const caption = `🍀 𝐓𝐢𝐭𝐥𝐞 : *${title}*
-
-👀 ᴠɪᴇᴡꜱ     : *${views.toLocaleString()}*
-⏱️ ᴅᴜʀᴀᴛɪᴏɴ   : *${timestamp}*
-📅 ᴜᴘʟᴏᴀᴅᴇᴅ   : *${ago}*
-
-* *00:00* ────○─────── *${timestamp}*
-
-\`සින්දුවට රියැක්ට් ඕනි ළමයෝ...😽💗🍃\`
-
-> *${channelName}*`;
-
-        // 1. Send Image with Caption
-        await socket.sendMessage(targetJid, { 
-            image: { url: thumbnail }, 
-            caption: caption,
-            contextInfo: {
-                externalAdReply: {
-                    title: title,
-                    body: channelName,
-                    thumbnailUrl: thumbnail,
-                    sourceUrl: ytUrl,
-                    mediaType: 1,
-                    renderLargerThumbnail: true
-                }
-            }
-        });
-
-        // 2. Send Audio (PTT/Voice Note Style)
-        await socket.sendMessage(targetJid, {
-            audio: fs.readFileSync(tempPath),
-            mimetype: 'audio/mpeg', // Sending as MP3 which works fine usually
-            ptt: true,
-            contextInfo: {
-                externalAdReply: {
-                    title: title,
-                    body: "DTEC Music",
-                    thumbnailUrl: thumbnail,
-                    sourceUrl: ytUrl,
-                    mediaType: 1,
-                    renderLargerThumbnail: false
-                }
-            }
-        });
-
-        // Cleanup
-        fs.unlinkSync(tempPath);
-
-        // Notify Owner
-        await socket.sendMessage(sender, { 
-            text: `*✅ Successfully Sent!*\n\n🎵 *Song:* ${title}\n📢 *Channel:* ${channelName}\n🆔 *JID:* ${targetJid}\n\n\`© Powered By ᴅᴛᴇᴄ ᴍɪɴɪ ᴠ𝟷\`` 
-        }, { quoted: msg });
-
-    } catch (err) {
-        console.error("CSong Error:", err);
-        await socket.sendMessage(sender, { text: `❌ Error: ${err.message}` }, { quoted: msg });
-    }
-}
-break;
+			  
 case 'fb':
 case 'fbdl':
 case 'facebook':
