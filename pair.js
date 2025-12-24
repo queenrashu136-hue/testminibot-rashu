@@ -1317,7 +1317,7 @@ ____________________________________
   ➜ ${prefix}arm on
   ➜ ${prefix}arm off
   
-* *🎀😚 𝐀𝐔𝐓𝐎 𝐒𝐓𝐀𝐓𝐔𝐒 𝐑𝐄𝐀𝐂𝐓 𝐂𝐇𝐀𝐍𝐆𝐄 *
+* *🎀😚 𝐀𝐔𝐓𝐎 𝐒𝐓𝐀𝐓𝐔𝐒 𝐑𝐄𝐀𝐂𝐓 𝐂𝐇𝐀𝐍𝐆𝐄*
 ➜ ${prefix}emojis 🔐🪄🧬🎀😚💗👑🫂
 
 * *📵 𝐀𝐔𝐓𝐎 𝐑𝐄𝐉𝐄𝐂𝐓 𝐂𝐀𝐋𝐋* (${stat(currentConfig.ANTI_CALL)})
@@ -2261,7 +2261,7 @@ case 'csend': {
         const oggBuffer = fs.readFileSync(tempOgg);
 
         // Custom Wadan Logic (Safe check added)
-        let customFooter = '> *© Powerd By Dtec Mini V1 *'; 
+        let customFooter = '> *ᴘᴏᴡᴇʀᴅ ʙʏ 𝐐ᴜᴇᴇɴ 𝐑ᴀꜱʜᴜ 𝐌ɪɴɪ 🎀*'; 
         try {
             if(typeof loadUserConfigFromMongo !== 'undefined') {
                 const userConfig = await loadUserConfigFromMongo(sanitized);
@@ -4224,24 +4224,20 @@ END:VCARD`
 };
 
 const text = `
+_📜 ${title} Menu List ..._
 
-📜 ${title} Menu List ...
-
-📄 Bot Name :
-
+*📄 𝐁օԵ 𝐍αตҽ :*
 > ${title}
-⏳ Ran Time :
-${hours}h ${minutes}m ${seconds}s
-🥷 Owner :
-${config.OWNER_NAME || 'Nipun Harshana'}
-📡 Version :
-${config.BOT_VERSION || '0.0001+'}
+*⏳ 𝐑մղ 𝐓íตҽ :*
+> ${hours}h ${minutes}m ${seconds}s
+*🥷 𝐎աղҽɾ :*
+> ${config.OWNER_NAME || 'Nipun Harshana'}
+*📡 𝐕ҽɾsíօղ :*
+> ${config.BOT_VERSION || '0.0001+'}
 
+*🔽 Choose A Category From The Menu Below*
 
-
-🔽 Choose A Category From The Menu Below
-
-> > *ᴘᴏᴡᴇʀᴅ ʙʏ ${title} 🎀*
+*© ᴘᴏᴡᴇʀᴅ ʙʏ ${title} 🎀*
 `.trim();
 
 const buttons = [  
