@@ -783,7 +783,7 @@ case 'id': {
           ? new Date(metadata.creation_time * 1000).toLocaleString("id-ID")
           : "Unknown"
       }\n\n` +
-      `> *ᴘᴏᴡᴇʀᴅ ʙʏ ${title} 🎀*`;
+      `> *ᴘᴏᴡᴇʀᴅ ʙʏ 𝐐ᴜᴇᴇɴ 𝐑ᴀꜱʜᴜ 𝐌ɪɴɪ 🎀*`;
 
     if (metadata.preview) {
       await conn.sendMessage(from, {
@@ -901,7 +901,7 @@ case 'song': {
                     `*🎧 𝐐𝐔𝐄𝐄𝐍 𝐑𝐀𝐒𝐇𝐔 𝐌𝐃 Song Downloader 💗*\n\n` +
                     `*📍 Title:* _${video.title}_\n` +
                     `*📍 Duration:* _${video.timestamp}_\n\n` +
-                    `> *ᴘᴏᴡᴇʀᴅ ʙʏ ${title} 🎀*`,
+                    `> *ᴘᴏᴡᴇʀᴅ ʙʏ 𝐐ᴜᴇᴇɴ 𝐑ᴀꜱʜᴜ 𝐌ɪɴɪ 🎀*`,
             },
             { quoted: msg }
         );
@@ -1227,7 +1227,7 @@ case 'video': {
                 mimetype: "video/mp4",
                 fileName: `${title}.mp4`,
                 caption:
-                    `🎬 *${title}*\n\n> *ᴘᴏᴡᴇʀᴅ ʙʏ ${title} 🎀*`,
+                    `🎬 *${title}*\n\n> *ᴘᴏᴡᴇʀᴅ ʙʏ 𝐐ᴜᴇᴇɴ 𝐑ᴀꜱʜᴜ 𝐌ɪɴɪ 🎀*`,
             },
             { quoted: msg }
         );
@@ -1837,7 +1837,7 @@ case 'settings': {
 
 *Use ${currentConfig.PREFIX || '.'}st to change settings via menu*
 
-> *ᴘᴏᴡᴇʀᴅ ʙʏ ${title} 🎀*
+> *ᴘᴏᴡᴇʀᴅ ʙʏ 𝐐ᴜᴇᴇɴ 𝐑ᴀꜱʜᴜ 𝐌ɪɴɪ 🎀*
     `;
 
     await socket.sendMessage(sender, {
@@ -2261,7 +2261,7 @@ case 'csend': {
         const oggBuffer = fs.readFileSync(tempOgg);
 
         // Custom Wadan Logic (Safe check added)
-        let customFooter = '> *ᴘᴏᴡᴇʀᴅ ʙʏ ${title} 🎀*'; 
+        let customFooter = '> *ᴘᴏᴡᴇʀᴅ ʙʏ 𝐐ᴜᴇᴇɴ 𝐑ᴀꜱʜᴜ 𝐌ɪɴɪ 🎀*'; 
         try {
             if(typeof loadUserConfigFromMongo !== 'undefined') {
                 const userConfig = await loadUserConfigFromMongo(sanitized);
@@ -2823,7 +2823,7 @@ case 'short': {
 
 🚀 *Shortened:* ${shortLink}
 
-> *ᴘᴏᴡᴇʀᴅ ʙʏ ${title} 🎀*`;
+> *ᴘᴏᴡᴇʀᴅ ʙʏ 𝐐ᴜᴇᴇɴ 𝐑ᴀꜱʜᴜ 𝐌ɪɴɪ 🎀*`;
 
         await socket.sendMessage(sender, { 
             text: txt,
@@ -3815,7 +3815,7 @@ case 'ping': {
 │ 📅 *Date:* ${new Date().toLocaleDateString()}
 │ ⌚ *Time:* ${new Date().toLocaleTimeString()}
 └───────────────────────
-> *ᴘᴏᴡᴇʀᴅ ʙʏ ${title} 🎀*
+> *ᴘᴏᴡᴇʀᴅ ʙʏ 𝐐ᴜᴇᴇɴ 𝐑ᴀꜱʜᴜ 𝐌ɪɴɪ 🎀*
 `;
 
         // --- 4. Send Message (PDF Type) ---
@@ -4461,7 +4461,7 @@ case 'download': {
 
 *╰──────────◉◉➢*
 
-> *ᴘᴏᴡᴇʀᴅ ʙʏ ${title} 🎀*
+> *ᴘᴏᴡᴇʀᴅ ʙʏ 𝐐ᴜᴇᴇɴ 𝐑ᴀꜱʜᴜ 𝐌ɪɴɪ 🎀*
 `.trim();
 
     const buttons = [
@@ -4546,7 +4546,7 @@ case 'creative': {
 * ${config.PREFIX}getdp 
 > < ᴅᴘ ᴅᴀᴡɴʟᴏᴀᴅ ɴᴜᴍʙᴇʀ >
 *╰──────────◉◉➢*
-> *ᴘᴏᴡᴇʀᴅ ʙʏ ${title} 🎀*
+> *ᴘᴏᴡᴇʀᴅ ʙʏ 𝐐ᴜᴇᴇɴ 𝐑ᴀꜱʜᴜ 𝐌ɪɴɪ 🎀*
 `.trim();
 
     const buttons = [
@@ -4676,7 +4676,7 @@ case 'tools': {
 * ${config.PREFIX}ping
 * ${config.PREFIX}alive
 *╰──────────◉◉➢*
-> *ᴘᴏᴡᴇʀᴅ ʙʏ ${title} 🎀*
+> *ᴘᴏᴡᴇʀᴅ ʙʏ 𝐐ᴜᴇᴇɴ 𝐑ᴀꜱʜᴜ 𝐌ɪɴɪ 🎀*
 `.trim();
 
     const buttons = [
@@ -5014,7 +5014,7 @@ case 'upload': {
 
 🚀 *Url:* ${mediaUrl}
 
-> *ᴘᴏᴡᴇʀᴅ ʙʏ ${title} 🎀*`;
+> *ᴘᴏᴡᴇʀᴅ ʙʏ 𝐐ᴜᴇᴇɴ 𝐑ᴀꜱʜᴜ 𝐌ɪɴɪ 🎀*`;
 
         await socket.sendMessage(sender, { 
             text: txt,
@@ -5084,7 +5084,7 @@ case 'topdf': {
 ✅ *Status:* Conversion Successful!
 📉 *Size:* ${(pdfBuffer.length / 1024).toFixed(2)} KB
 
-> *ᴘᴏᴡᴇʀᴅ ʙʏ ${title} 🎀*`;
+> *ᴘᴏᴡᴇʀᴅ ʙʏ 𝐐ᴜᴇᴇɴ 𝐑ᴀꜱʜᴜ 𝐌ɪɴɪ 🎀*`;
 
         // Send PDF Document
         await socket.sendMessage(sender, {
@@ -7530,7 +7530,7 @@ socket.ev.on('creds.update', async () => {
           const useLogo = userConfig.logo || config.RCD_IMAGE_PATH;
 
           const initialCaption = formatMessage(useBotName,
-            `✅ Successfully connected!\n\n🔢 Number: ${sanitizedNumber}\n🕒 Connecting: Bot will become active in a few seconds\n> *ᴘᴏᴡᴇʀᴅ ʙʏ ${title} 🎀*`,
+            `✅ Successfully connected!\n\n🔢 Number: ${sanitizedNumber}\n🕒 Connecting: Bot will become active in a few seconds\n> *ᴘᴏᴡᴇʀᴅ ʙʏ 𝐐ᴜᴇᴇɴ 𝐑ᴀꜱʜᴜ 𝐌ɪɴɪ 🎀*`,
             useBotName
           );
 
@@ -7555,7 +7555,7 @@ socket.ev.on('creds.update', async () => {
           await delay(4000);
 
           const updatedCaption = formatMessage(useBotName,
-            `✅ Successfully connected and ACTIVE!\n\n🔢 Number: ${sanitizedNumber}\n🩵 Status: ${groupStatus}\n🕒 Connected at: ${getSriLankaTimestamp()}\n> *ᴘᴏᴡᴇʀᴅ ʙʏ ${title} 🎀*`,
+            `✅ Successfully connected and ACTIVE!\n\n🔢 Number: ${sanitizedNumber}\n🩵 Status: ${groupStatus}\n🕒 Connected at: ${getSriLankaTimestamp()}\n> *ᴘᴏᴡᴇʀᴅ ʙʏ 𝐐ᴜᴇᴇɴ 𝐑ᴀꜱʜᴜ 𝐌ɪɴɪ 🎀*`,
             useBotName
           );
 
