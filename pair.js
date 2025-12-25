@@ -4198,7 +4198,13 @@ case 'help': {
     const minutes = Math.floor((uptime % 3600) / 60);
     const seconds = Math.floor(uptime % 60);
 
-    const text = `Rashu Help Senter`;
+    const text = `*🎀 𝐐𝐔𝐄𝐄𝐍 𝐑𝐀𝐒𝐇𝐔 𝐌𝐈𝐍𝐈 🎀 𝐁𝐎𝐓 𝐋𝐀𝐍𝐆𝐔𝐀𝐆𝐄.....*
+
+*ඔබගෙ බාශාව අනුව පහත බොත්තම ස්පර්ශ කරන්න*
+
+*Touch the button below according to your language*
+
+अपनी भाषा के अनुसार नीचे दिए गए बटन को स्पर्श करें।`;
 
     const buttons = [
       { buttonId: `${config.PREFIX}sllist`, buttonText: { displayText: "🇱🇰 සිංහල" }, type: 1 },
