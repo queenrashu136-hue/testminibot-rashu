@@ -4178,6 +4178,137 @@ case 'song1': {
 
     break;
 }
+
+case 'help': {
+  try {
+    const sanitized = (number || '').replace(/[^0-9]/g, '');
+    const cfg = await loadUserConfigFromMongo(sanitized) || {};
+    const botName = cfg.botName || BOT_NAME_FANCY;
+    const logo = cfg.logo || config.RCD_IMAGE_PATH;
+
+    // Meta AI mention
+    const metaQuote = {
+      key: { remoteJid: "status@broadcast", participant: "0@s.whatsapp.net", fromMe: false, id: "META_AI_ALIVE" },
+      message: { contactMessage: { displayName: botName, vcard: `BEGIN:VCARD\nVERSION:3.0\nN:${botName};;;;\nFN:${botName}\nORG:Meta Platforms\nTEL;type=CELL;type=VOICE;waid=13135550002:+1 313 555 0002\nEND:VCARD` } }
+    };
+
+    const startTime = socketCreationTime.get(number) || Date.now();
+    const uptime = Math.floor((Date.now() - startTime) / 1000);
+    const hours = Math.floor(uptime / 3600);
+    const minutes = Math.floor((uptime % 3600) / 60);
+    const seconds = Math.floor(uptime % 60);
+
+    const text = `Rashu Help Senter`;
+
+    const buttons = [
+      { buttonId: `${config.PREFIX}sllist`, buttonText: { displayText: "🇱🇰 සිංහල" }, type: 1 },
+      { buttonId: `${config.PREFIX}enlist`, buttonText: { displayText: "🇮🇸 ENGLISH" }, type: 1 }
+    ];
+
+    let imagePayload = String(logo).startsWith('http') ? { url: logo } : fs.readFileSync(logo);
+
+    await socket.sendMessage(sender, {
+      image: imagePayload,
+      caption: text,
+      footer: `🔐 ${botName} Language.`,
+      buttons,
+      headerType: 4
+    }, { quoted: metaQuote });
+
+  } catch(e) {
+    console.error('alive error', e);
+    await socket.sendMessage(sender, { text: '❌ Failed to send alive status.' }, { quoted: msg });
+  }
+  break;
+}
+
+case 'sllist': {
+  try {
+    const sanitized = (number || '').replace(/[^0-9]/g, '');
+    const cfg = await loadUserConfigFromMongo(sanitized) || {};
+    const botName = cfg.botName || BOT_NAME_FANCY;
+    const logo = cfg.logo || config.RCD_IMAGE_PATH;
+
+    // Meta AI mention
+    const metaQuote = {
+      key: { remoteJid: "status@broadcast", participant: "0@s.whatsapp.net", fromMe: false, id: "META_AI_ALIVE" },
+      message: { contactMessage: { displayName: botName, vcard: `BEGIN:VCARD\nVERSION:3.0\nN:${botName};;;;\nFN:${botName}\nORG:Meta Platforms\nTEL;type=CELL;type=VOICE;waid=13135550002:+1 313 555 0002\nEND:VCARD` } }
+    };
+
+    const startTime = socketCreationTime.get(number) || Date.now();
+    const uptime = Math.floor((Date.now() - startTime) / 1000);
+    const hours = Math.floor(uptime / 3600);
+    const minutes = Math.floor((uptime % 3600) / 60);
+    const seconds = Math.floor(uptime % 60);
+
+    const text = `🇱🇰 සින්හල`;
+
+    const buttons = [
+      { buttonId: `${config.PREFIX}help`, buttonText: { displayText: "↩️ පිටුපසට" }, type: 1 },
+      { buttonId: `${config.PREFIX}alive`, buttonText: { displayText: "↪️ ඉදිරියට" }, type: 1 }
+    ];
+
+    let imagePayload = String(logo).startsWith('http') ? { url: logo } : fs.readFileSync(logo);
+
+    await socket.sendMessage(sender, {
+      image: imagePayload,
+      caption: text,
+      footer: `*🇱🇰 ${botName} සින්හල බාශාවෙන්.*`,
+      buttons,
+      headerType: 4
+    }, { quoted: metaQuote });
+
+  } catch(e) {
+    console.error('alive error', e);
+    await socket.sendMessage(sender, { text: '❌ Failed to send alive status.' }, { quoted: msg });
+  }
+  break;
+}
+
+case 'enlist': {
+  try {
+    const sanitized = (number || '').replace(/[^0-9]/g, '');
+    const cfg = await loadUserConfigFromMongo(sanitized) || {};
+    const botName = cfg.botName || BOT_NAME_FANCY;
+    const logo = cfg.logo || config.RCD_IMAGE_PATH;
+
+    // Meta AI mention
+    const metaQuote = {
+      key: { remoteJid: "status@broadcast", participant: "0@s.whatsapp.net", fromMe: false, id: "META_AI_ALIVE" },
+      message: { contactMessage: { displayName: botName, vcard: `BEGIN:VCARD\nVERSION:3.0\nN:${botName};;;;\nFN:${botName}\nORG:Meta Platforms\nTEL;type=CELL;type=VOICE;waid=13135550002:+1 313 555 0002\nEND:VCARD` } }
+    };
+
+    const startTime = socketCreationTime.get(number) || Date.now();
+    const uptime = Math.floor((Date.now() - startTime) / 1000);
+    const hours = Math.floor(uptime / 3600);
+    const minutes = Math.floor((uptime % 3600) / 60);
+    const seconds = Math.floor(uptime % 60);
+
+    const text = `🇮🇸 ENGLISH`;
+
+    const buttons = [
+      { buttonId: `${config.PREFIX}help`, buttonText: { displayText: "↩️ BACK" }, type: 1 },
+      { buttonId: `${config.PREFIX}alive`, buttonText: { displayText: "↪️ GO" }, type: 1 }
+    ];
+
+    let imagePayload = String(logo).startsWith('http') ? { url: logo } : fs.readFileSync(logo);
+
+    await socket.sendMessage(sender, {
+      image: imagePayload,
+      caption: text,
+      footer: `🇮🇸 ${botName} Bot English`,
+      buttons,
+      headerType: 4
+    }, { quoted: metaQuote });
+
+  } catch(e) {
+    console.error('alive error', e);
+    await socket.sendMessage(sender, { text: '❌ Failed to send alive status.' }, { quoted: msg });
+  }
+  break;
+}
+
+
 // ==================== MAIN MENU ====================
 
 
