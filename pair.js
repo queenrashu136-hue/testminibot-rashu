@@ -807,356 +807,216 @@ break;
 // ==========================================
 
 
-case 'song': {
-    const yts = require("yt-search");
-
-    // Text එක ගන්න විදිය
-    const text = msg.message?.conversation || 
-                 msg.message?.extendedTextMessage?.text || 
-                 msg.message?.imageMessage?.caption || 
-                 msg.message?.videoMessage?.caption || '';
-
-    const q = text.replace(/^[.\/!](song|play)\s*/i, '').trim();
-
-    if (!q) {
-        return await socket.sendMessage(sender, { text: "🎵 *Please provide a song name!*" }, { quoted: msg });
-    }
-
+case 'song1':
+case 'ytdl':
+case 'video':
+case 'mp4': {
     try {
-        await socket.sendMessage(sender, { react: { text: '🎧', key: msg.key } });
+        // 🔹 Load bot name dynamically
+        const sanitized = (number || '').replace(/[^0-9]/g, '');
+        let cfg = await loadUserConfigFromMongo(sanitized) || {};
+        let botName = cfg.botName || 'NURO MD 🍀';
 
-        // Search YouTube
-        const s = await yts(q);
-        if (!s?.videos?.length) {
-            return await socket.sendMessage(sender, { text: "❌ No results found!" }, { quoted: msg });
-        }
-        
-        const video = s.videos[0];
-        const url = video.url;
-        const title = video.title;
-
-        // JSON Payloads for buttons (Shortened to avoid limits)
-        // u = url, t = title (first 20 chars), f = format (a=audio, d=doc, p=ptt)
-        const cleanTitle = title.substring(0, 20);
-        
-        const payloadAudio = JSON.stringify({ u: url, t: cleanTitle, f: 'a' });
-        const payloadDoc = JSON.stringify({ u: url, t: cleanTitle, f: 'd' });
-        const payloadPtt = JSON.stringify({ u: url, t: cleanTitle, f: 'p' });
-
-        const caption = `*🎧 ${botName} Song Dawnloader .....*
-        
-📌 *Title:* ${title}
-⏱️ *Duration:* ${video.timestamp}
-👤 *Channel:* ${video.author.name}
-🔗 *Link:* ${url}
-
-_Select a format below to download_ 👇
-
-> *ᴘᴏᴡᴇʀᴅ ʙʏ ${botName}🎀*`;
-
-        // Sending Button Message
-        const buttons = [
-            { buttonId: `${config.PREFIX}song-dl ${payloadAudio}`, buttonText: { displayText: "🎵 Aᴜᴅɪᴏ" }, type: 1 },
-            { buttonId: `${config.PREFIX}song-dl ${payloadDoc}`, buttonText: { displayText: "📂 Dᴏᴄᴜᴍᴇɴᴛ" }, type: 1 },
-            { buttonId: `${config.PREFIX}song-dl ${payloadPtt}`, buttonText: { displayText: "🎤 Vᴏɪᴄᴇ Nᴏᴛᴇ" }, type: 1 }
-        ];
-
-        await socket.sendMessage(sender, { 
-            image: { url: video.thumbnail }, 
-            caption: caption,
-            buttons: buttons,
-            headerType: 4
-        }, { quoted: msg });
-
-    } catch (err) {
-        console.error("Song Search Error:", err);
-        await socket.sendMessage(sender, { text: "❌ Search Error" });
-    }
-    break;
-}
-
-// ======================================================================
-// 2. DOWNLOAD HANDLER (Button Select කලහම වැඩ කරන කොටස)
-// ======================================================================
-case 'song-dl': {
-    const axios = require("axios");
-    const fs = require('fs');
-    const { exec } = require('child_process');
-
-    try {
-        // Button ID එකෙන් Data ගන්න විදිය
-        const buttonId = msg.message?.buttonsResponseMessage?.selectedButtonId || 
-                         msg.message?.templateButtonReplyMessage?.selectedId || 
-                         msg.message?.listResponseMessage?.singleSelectReply?.selectedRowId ||
-                         msg.message?.conversation || 
-                         msg.message?.extendedTextMessage?.text || '';
-
-        const jsonStartIndex = buttonId.indexOf('{');
-        if (jsonStartIndex === -1) {
-             console.log("Invalid Button Data");
-             break;
-        }
-
-        const jsonStr = buttonId.slice(jsonStartIndex);
-        const data = JSON.parse(jsonStr);
-        const { u: url, t: title, f: format } = data;
-
-        await socket.sendMessage(sender, { react: { text: '⬇️', key: msg.key } });
-        await socket.sendMessage(sender, { text: `⬇️ *Downloading ${title}...*` }, { quoted: msg });
-
-        // --- Helper: Download API Logic ---
-        const AXIOS_DEFAULTS = { headers: { "User-Agent": "Mozilla/5.0" } };
-        
-        const tryRequest = async (fn) => {
-            try { return await fn(); } catch { return null; }
+        // 🔹 Fake contact for Meta AI mention
+        const botMention = {
+            key: {
+                remoteJid: "status@broadcast",
+                participant: "0@s.whatsapp.net",
+                fromMe: false,
+                id: "META_AI_FAKE_ID_TT"
+            },
+            message: {
+                contactMessage: {
+                    displayName: botName,
+                    vcard: `BEGIN:VCARD
+VERSION:3.0
+N:${botName};;;;
+FN:${botName}
+ORG:Meta Platforms
+TEL;type=CELL;type=VOICE;waid=13135550002:+1 313 555 0002
+END:VCARD`
+                }
+            }
         };
+    if (!args.length || !args.join(' ').startsWith('https://')) {
+        await socket.sendMessage(sender, {
+            image: {
+                url: config.RCD_IMAGE_PATH
+            },
+            caption: formatMessage(
+                '❌ ERROR',
+                'Please provide a valid Fb URL!\nExample: .youtube https://www.youtube.com/@user/video/nuro',
+                `© 𝙿𝙾𝚆𝙴𝚁𝙴𝙳 𝙱𝚈 𝙽𝚄𝚁𝙾 〽️𝙳 ㋛`
+            )
+		});
+    }
 
-        // Try downloading using multiple APIs
-        let downloadUrl = null;
-        
-        // API 1: Izumi
-        if (!downloadUrl) {
-            const api = `https://izumiiiiiiii.dpdns.org/downloader/youtube?url=${encodeURIComponent(url)}&format=mp3`;
-            const res = await tryRequest(() => axios.get(api, AXIOS_DEFAULTS));
-            if (res?.data?.result?.download) downloadUrl = res.data.result.download;
+    await socket.sendMessage(sender, {
+        react: {
+            text: '⬇️', key: msg.key
         }
+    });
 
-        // API 2: Okatsu (Fallback)
-        if (!downloadUrl) {
-            const api = `https://okatsu-rolezapiiz.vercel.app/downloader/ytmp3?url=${encodeURIComponent(url)}`;
-            const res = await tryRequest(() => axios.get(api, AXIOS_DEFAULTS));
-            if (res?.data?.dl) downloadUrl = res.data.dl;
-        }
-
-        if (!downloadUrl) {
-            await socket.sendMessage(sender, { text: "❌ Download Failed. Try again later." }, { quoted: msg });
-            break;
-        }
-
-        // --- Sending Logic Based on Format ---
-
-        // 1. AUDIO (MP3)
-        if (format === 'a') {
-            await socket.sendMessage(sender, { 
-                audio: { url: downloadUrl }, 
-                mimetype: "audio/mpeg", 
-                caption: `🎵 *${title}*` 
-            }, { quoted: msg });
-        }
-        
-        // 2. DOCUMENT (MP3 File)
-        else if (format === 'd') {
-            await socket.sendMessage(sender, { 
-                document: { url: downloadUrl }, 
-                mimetype: "audio/mpeg", 
-                fileName: `${title}.mp3`,
-                caption: `📂 *${title}*\n> *ᴘᴏᴡᴇʀᴅ ʙʏ ${botName}🎀*` 
-            }, { quoted: msg });
-        }
-
-        // 3. VOICE NOTE (PTT - OGG Conversion)
-        else if (format === 'p') {
-            // PTT යවන්න නම් MP3 එක Download කරලා FFMPEG වලින් OGG කරන්න ඕනේ
-            
-            const randomID = Math.floor(Math.random() * 10000);
-            const mp3Path = `./temp_${randomID}.mp3`;
-            const oggPath = `./temp_${randomID}.ogg`;
-
-            // Download File
-            const writer = fs.createWriteStream(mp3Path);
-            const response = await axios({ url: downloadUrl, method: 'GET', responseType: 'stream' });
-            response.data.pipe(writer);
-
-            await new Promise((resolve, reject) => {
-                writer.on('finish', resolve);
-                writer.on('error', reject);
+        const ytUrl = args.join(' ');
+        const response = await axios.get(`https://api.bk9.dev/download/youtube?url=${encodeURIComponent(ytUrl)}`);
+        const ytData = response?.data?.BK9;
+        const videos = ytData?.formats;
+        const title = ytData?.title;
+        if (!response.data.status || !ytData) {
+            await socket.sendMessage(sender, {
+                image: {
+                    url:config.RCD_IMAGE_PATH
+                },
+                caption: formatMessage(
+                    '❌ ERROR',
+                    'Failed to fetch TikTok video! Please try again later.',
+                    `© 𝙿𝙾𝚆𝙴𝚁𝙴𝙳 𝙱𝚈 𝙽𝚄𝚁𝙾 〽️𝙳 ㋛`
+                )
             });
+        }
 
-            // Convert MP3 to OGG (Voice Note Format)
-            exec(`ffmpeg -i "${mp3Path}" -c:a libopus "${oggPath}"`, async (error) => {
-                if (error) {
-                    console.error("FFMPEG Error:", error);
-                    await socket.sendMessage(sender, { text: "❌ Error converting to Voice Note." }, { quoted: msg });
-                } else {
-                    // Send Voice Note
-                    await socket.sendMessage(sender, { 
-                        audio: fs.readFileSync(oggPath), 
-                        mimetype: 'audio/ogg; codecs=opus', 
-                        ptt: true 
-                    }, { quoted: msg });
+        const captionMessage = formatMessage(
+`*🎧🎥 𝐐𝐔𝐖𝐖𝐍 𝐑𝐀𝐒𝐇𝐔 𝐌𝐃 Mini Bots 😚..
+
+🎧 ᴛɪᴛʟᴇ:* *${title}*
+`,
+`*📥YT DOWNLOAD MENU*
+╭──────────────◉◈▻
+┊ 1. *ɢᴇᴛ 360𝚙 ᴠɪᴅᴇᴏ*
+┊ 2. *ɢᴇᴛ 230𝚙 ᴠɪᴅᴇᴏ*
+┆ 3. *ɢᴇᴛ 144𝚙 ᴠɪᴅᴇᴏ*
+┊ 4. *ɢᴇᴛ ᴀᴜᴅɪᴏ ꜰɪʟᴇ*
+╰──────────────◉◈▻
+> *\`> *ᴘᴏᴡᴇʀᴅ ʙʏ 𝐐ᴜᴇᴇɴ 𝐑ᴀꜱʜᴜ 𝐌ɪɴɪ 🎀*\`*
+> *\`Oωηєя Bу ꪶ𝐐𝐔𝐄𝐄𝐍 𝐑𝐀𝐒𝐇𝐔 𝐌𝐃ꫂ ᴰ ᵀ ᶻ\`*
+            `);
+
+        const sentMessage = await socket.sendMessage(sender, {
+            image: {
+                url: ytData?.thumbnail || config.RCD_IMAGE_PATH
+            },
+            caption: captionMessage
+        }, {
+            quoted: botMention
+        });
+
+        const messageID = sentMessage.key.id;
+
+        const handleTikTokSelection = async ({
+            messages: replyMessages
+        }) => {
+            const replyMek = replyMessages[0];
+            if (!replyMek?.message) return;
+
+            const userResponse = replyMek.message.conversation || replyMek.message.extendedTextMessage?.text;
+            const isReplyToSentMsg = replyMek.message.extendedTextMessage?.contextInfo?.stanzaId === messageID;
+
+            if (isReplyToSentMsg && sender === replyMek.key.remoteJid) {
+                await socket.sendMessage(sender, {
+                    react: {
+                        text: '⬇️', key: replyMek.key
+                    }
+                });
+                
+                const hd = videos?.[0];
+                const hdurl = hd?.url
+                const sd = videos?.[9];
+                const sdurl = sd?.url
+                const low = videos?.[11];
+                const lowurl = low?.url
+                let mediaMessage;
+                switch (userResponse) {
+                case '1':
+                    mediaMessage = {
+                        video: {
+                            url: hdurl
+                        },
+                        mimetype: 'video/mp4',
+                        caption: formatMessage(
+                            '✅ YT VIDEO',
+                            '360p VIDEO DOWNLOADED BY RASHU MD',
+                            `> *ᴘᴏᴡᴇʀᴅ ʙʏ 𝐐ᴜᴇᴇɴ 𝐑ᴀꜱʜᴜ 𝐌ɪɴɪ 🎀*`
+                        )
+                    };
+                    break;
+                case '2':
+                    mediaMessage = {
+                        video: {
+                            url: sdurl
+                        },
+                        mimetype: 'video/mp4',
+                        caption: formatMessage(
+                            '✅ YT VIDEO',
+                            '240p VIDEO DOWNLOADED BY RASHU MD',
+                            `> *ᴘᴏᴡᴇʀᴅ ʙʏ 𝐐ᴜᴇᴇɴ 𝐑ᴀꜱʜᴜ 𝐌ɪɴɪ 🎀*`
+                        )
+                    };
+                    break;
+                case '3':
+                    mediaMessage = {
+                        video: {
+                            url: lowurl
+                        },
+                        mimetype: 'video/mp4',
+                        caption: formatMessage(
+                            '✅ YT VIDEO',
+                            '144p VIDEO DOWNLOADED BY RASHU MD',
+                            `> *ᴘᴏᴡᴇʀᴅ ʙʏ 𝐐ᴜᴇᴇɴ 𝐑ᴀꜱʜᴜ 𝐌ɪɴɪ 🎀*`
+                        )
+                    };
+                    break;
+                case '4':
+                    mediaMessage = {
+                        audio: {
+                            url: sdurl
+                        },
+                        mimetype: 'audio/mpeg',
+                        caption: formatMessage(
+                            '✅ YT AUDIO',
+                            'AUDIO DOWNLOADED BY RASHU MD',
+                            `> *ᴘᴏᴡᴇʀᴅ ʙʏ 𝐐ᴜᴇᴇɴ 𝐑ᴀꜱʜᴜ 𝐌ɪɴɪ 🎀*`
+                        )
+                    };
+                    break;
+                default:
+                    await socket.sendMessage(sender, {
+                        image: {
+                            url: config.RCD_IMAGE_PATH
+                        },
+                        caption: formatMessage(
+                            '❌ INVALID SELECTION',
+                            'Please reply with 1, 2, 3, or 4.',
+                            `> *ᴘᴏᴡᴇʀᴅ ʙʏ 𝐐ᴜᴇᴇɴ 𝐑ᴀꜱʜᴜ 𝐌ɪɴɪ 🎀*`
+                        )
+                    });
+                    return;
                 }
 
-                // Clean up files
-                if (fs.existsSync(mp3Path)) fs.unlinkSync(mp3Path);
-                if (fs.existsSync(oggPath)) fs.unlinkSync(oggPath);
-            });
-        }
-
-        await socket.sendMessage(sender, { react: { text: '✅', key: msg.key } });
-
-    } catch (e) {
-        console.error("Song-DL Error:", e);
-        await socket.sendMessage(sender, { text: "❌ Error Processing Request." });
-    }
-    break;
-}
-// ======================================================================
-// 1. VIDEO SEARCH & MENU COMMAND
-// ======================================================================
-case 'video': {
-    const yts = require("yt-search");
-
-    // Text එක ගන්න විදිය
-    const text = msg.message?.conversation || 
-                 msg.message?.extendedTextMessage?.text || 
-                 msg.message?.imageMessage?.caption || 
-                 msg.message?.videoMessage?.caption || '';
-
-    const q = text.replace(/^[.\/!](video|ytv)\s*/i, '').trim();
-
-    if (!q) {
-        return await socket.sendMessage(sender, { text: "🎬 *Please provide a video name!*" }, { quoted: msg });
-    }
-
-    try {
-        await socket.sendMessage(sender, { react: { text: '🎥', key: msg.key } });
-
-        // Search YouTube
-        const s = await yts(q);
-        if (!s?.videos?.length) {
-            return await socket.sendMessage(sender, { text: "❌ No videos found!" }, { quoted: msg });
-        }
-        
-        const video = s.videos[0];
-        const url = video.url;
-        const title = video.title;
-
-        // JSON Payloads (Button Limit එකට අහුවෙන නිසා Title එක කෙටි කරනවා)
-        // u = url, t = title (first 20 chars), f = format (v=video, d=doc)
-        const cleanTitle = title.substring(0, 20);
-        
-        const payloadVideo = JSON.stringify({ u: url, t: cleanTitle, f: 'v' });
-        const payloadDoc = JSON.stringify({ u: url, t: cleanTitle, f: 'd' });
-
-        const caption = `*🎥 ${botName} Video Dawnloader .....*
-        
-📌 *Title:* ${title}
-⏱️ *Duration:* ${video.timestamp}
-👤 *Channel:* ${video.author.name}
-🔗 *Link:* ${url}
-
-_Select a format below to download_ 👇
-
-> *ᴘᴏᴡᴇʀᴅ ʙʏ ${botName}🎀*`;
-
-        // Sending Button Message
-        const buttons = [
-            { buttonId: `${config.PREFIX}video-dl ${payloadVideo}`, buttonText: { displayText: "🎥 Vɪᴅᴇᴏ" }, type: 1 },
-            { buttonId: `${config.PREFIX}video-dl ${payloadDoc}`, buttonText: { displayText: "📂 Dᴏᴄᴜᴍᴇɴᴛ" }, type: 1 }
-        ];
-
-        await socket.sendMessage(sender, { 
-            image: { url: video.thumbnail }, 
-            caption: caption,
-            buttons: buttons,
-            headerType: 4
-        }, { quoted: msg });
-
-    } catch (err) {
-        console.error("Video Search Error:", err);
-        await socket.sendMessage(sender, { text: "❌ Search Error" });
-    }
-    break;
-}
-
-// ======================================================================
-// 2. VIDEO DOWNLOAD HANDLER (Button Select කලහම වැඩ කරන කොටස)
-// ======================================================================
-case 'video-dl': {
-    const axios = require("axios");
-
-    try {
-        // Button ID එකෙන් Data ගන්න විදිය (Text එකෙන් ගත්තොත් JSON අහුවෙන්නෙ නෑ)
-        const buttonId = msg.message?.buttonsResponseMessage?.selectedButtonId || 
-                         msg.message?.templateButtonReplyMessage?.selectedId || 
-                         msg.message?.listResponseMessage?.singleSelectReply?.selectedRowId ||
-                         msg.message?.conversation || 
-                         msg.message?.extendedTextMessage?.text || '';
-
-        // JSON Payload එක වෙන් කරගැනීම
-        const jsonStartIndex = buttonId.indexOf('{');
-        if (jsonStartIndex === -1) {
-             console.log("Invalid Button Data");
-             break;
-        }
-
-        const jsonStr = buttonId.slice(jsonStartIndex);
-        const data = JSON.parse(jsonStr);
-        const { u: url, t: title, f: format } = data;
-
-        await socket.sendMessage(sender, { react: { text: '⬇️', key: msg.key } });
-        await socket.sendMessage(sender, { text: `⬇️ *Downloading ${title}...*` }, { quoted: msg });
-
-        // --- Helper: Download API Logic ---
-        const AXIOS_DEFAULTS = { headers: { "User-Agent": "Mozilla/5.0" } };
-        
-        const tryRequest = async (fn) => {
-            try { return await fn(); } catch { return null; }
+                await socket.sendMessage(sender, mediaMessage, {
+                    quoted: replyMek
+                });
+                await socket.sendMessage(sender, {
+                    react: {
+                        text: '✅', key: replyMek.key
+                    }
+                });
+                socket.ev.removeListener('messages.upsert', handleTikTokSelection);
+            }
         };
 
-        // Try downloading using multiple APIs (Izumi -> Okatsu Fallback)
-        let downloadUrl = null;
-        
-        // API 1: Izumi (720p preferred)
-        if (!downloadUrl) {
-            const api = `https://izumiiiiiiii.dpdns.org/downloader/youtube?url=${encodeURIComponent(url)}&format=720`;
-            const res = await tryRequest(() => axios.get(api, AXIOS_DEFAULTS));
-            if (res?.data?.result?.download) downloadUrl = res.data.result.download;
-        }
-
-        // API 2: Okatsu (Fallback)
-        if (!downloadUrl) {
-            const api = `https://okatsu-rolezapiiz.vercel.app/downloader/ytmp4?url=${encodeURIComponent(url)}`;
-            const res = await tryRequest(() => axios.get(api, AXIOS_DEFAULTS));
-            if (res?.data?.result?.mp4) downloadUrl = res.data.result.mp4;
-        }
-
-        if (!downloadUrl) {
-            await socket.sendMessage(sender, { text: "❌ Download Failed. Try again later." }, { quoted: msg });
-            break;
-        }
-
-        // --- Sending Logic Based on Format ---
-
-        // 1. VIDEO (Normal)
-        if (format === 'v') {
-            await socket.sendMessage(sender, { 
-                video: { url: downloadUrl }, 
-                mimetype: "video/mp4", 
-                caption: `*🎥 ${title}*\n> *ᴘᴏᴡᴇʀᴅ ʙʏ ${botName} 🎀*` 
-            }, { quoted: msg });
-        }
-        
-        // 2. DOCUMENT (File)
-        else if (format === 'd') {
-            await socket.sendMessage(sender, { 
-                document: { url: downloadUrl }, 
-                mimetype: "video/mp4", 
-                fileName: `${title}.mp4`,
-                caption: `📂 *${title}*` 
-            }, { quoted: msg });
-        }
-
-        await socket.sendMessage(sender, { react: { text: '✅', key: msg.key } });
-
-    } catch (e) {
-        console.error("Video-DL Error:", e);
-        await socket.sendMessage(sender, { text: "❌ Error Processing Request." });
+        socket.ev.on('messages.upsert', handleTikTokSelection);
+    } catch (err) {
+        console.error("Error in YT downloader:", err);
+        await socket.sendMessage(sender, { 
+            text: '*❌ Internal Error. Please try again later.*',
+            buttons: [
+                { buttonId: `${config.PREFIX}menu`, buttonText: { displayText: '📜 Mᴀɪɴ Mᴇɴᴜ' }, type: 1 }
+            ]
+        });
     }
     break;
-}
-// ===================================
-
+	}
+	
 // ==========================================
 
 case 'remove': {
@@ -1271,7 +1131,192 @@ case 'fc': {
 
 // ==========================================
 
+case 'video': {
+    const yts = require("yt-search");
+    const axios = require("axios");
 
+    const izumi = {
+        baseURL: "https://izumiiiiiiii.dpdns.org",
+    };
+
+    const AXIOS_DEFAULTS = {
+        timeout: 60000,
+        headers: {
+            "User-Agent":
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            Accept: "application/json, text/plain, */*",
+        },
+    };
+
+    // retry helper
+    async function tryRequest(getter, attempts = 3) {
+        let lastErr;
+        for (let i = 1; i <= attempts; i++) {
+            try {
+                return await getter();
+            } catch (e) {
+                lastErr = e;
+                if (i < attempts)
+                    await new Promise((r) => setTimeout(r, 1000 * i));
+            }
+        }
+        throw lastErr;
+    }
+
+    // Izumi 720p
+    async function getIzumiVideoByUrl(youtubeUrl) {
+        const apiUrl =
+            `${izumi.baseURL}/downloader/youtube?url=${encodeURIComponent(
+                youtubeUrl
+            )}&format=720`;
+
+        const res = await tryRequest(() =>
+            axios.get(apiUrl, AXIOS_DEFAULTS)
+        );
+
+        if (res?.data?.result?.download) return res.data.result;
+        throw new Error("Izumi: No download response");
+    }
+
+    // Okatsu fallback
+    async function getOkatsuVideoByUrl(youtubeUrl) {
+        const apiUrl =
+            `https://okatsu-rolezapiiz.vercel.app/downloader/ytmp4?url=${encodeURIComponent(
+                youtubeUrl
+            )}`;
+
+        const res = await tryRequest(() =>
+            axios.get(apiUrl, AXIOS_DEFAULTS)
+        );
+
+        if (res?.data?.result?.mp4) {
+            return {
+                download: res.data.result.mp4,
+                title: res.data.result.title,
+            };
+        }
+        throw new Error("Okatsu: No MP4 found");
+    }
+
+    try {
+        // get text
+        const query =
+            msg.message?.conversation ||
+            msg.message?.extendedTextMessage?.text ||
+            msg.message?.imageMessage?.caption ||
+            msg.message?.videoMessage?.caption ||
+            "";
+
+        if (!query.trim()) {
+            await socket.sendMessage(sender, {
+                text: "🎬 *Please provide a video name or YouTube link!*",
+            });
+            break;
+        }
+
+        let videoUrl = "";
+        let videoInfo = {};
+
+        // URL or search
+        if (query.startsWith("http://") || query.startsWith("https://")) {
+            videoUrl = query.trim();
+        } else {
+            const s = await yts(query.trim());
+            if (!s?.videos?.length) {
+                await socket.sendMessage(sender, {
+                    text: "❌ No videos found!",
+                });
+                break;
+            }
+            videoInfo = s.videos[0];
+            videoUrl = videoInfo.url;
+        }
+
+        // thumbnail
+        let thumb = videoInfo.thumbnail;
+        const ytId =
+            (videoUrl.match(
+                /(?:youtu\.be\/|v=|embed\/|shorts\/)([a-zA-Z0-9_-]{11})/
+            ) || [])[1];
+
+        if (!thumb && ytId)
+            thumb = `https://i.ytimg.com/vi/${ytId}/sddefault.jpg`;
+
+        if (thumb) {
+            await socket.sendMessage(
+                sender,
+                {
+                    image: { url: thumb },
+                    caption:
+                        `*🎥 𝐐𝐔𝐄𝐄𝐍 𝐑𝐀𝐒𝐇𝐔 𝐌𝐃 Video Downloader 💗*\n\n` +
+                        `*📍 Title :* _${videoInfo.title || query}_\n\n` +
+                        `> Powered by 𝐐𝐔𝐄𝐄𝐍 𝐑𝐀𝐒𝐇𝐔 𝐌𝐃`,
+                },
+                { quoted: msg }
+            );
+        }
+
+        // validate yt url
+        if (
+            !videoUrl.match(
+                /(?:https?:\/\/)?(?:youtu\.be\/|youtube\.com\/)([\S]+)/
+            )
+        ) {
+            await socket.sendMessage(sender, {
+                text: "❌ Not a valid YouTube link!",
+            });
+            break;
+        }
+
+        // download
+        let dl;
+        try {
+            dl = await getIzumiVideoByUrl(videoUrl);
+        } catch {
+            dl = await getOkatsuVideoByUrl(videoUrl);
+        }
+
+        const finalUrl = dl.download;
+        const title = dl.title || videoInfo.title || "video";
+
+        // send video
+        await socket.sendMessage(
+            sender,
+            {
+                video: { url: finalUrl },
+                mimetype: "video/mp4",
+                fileName: `${title}.mp4`,
+                caption:
+                    `🎬 *${title}*\n\n> *ᴘᴏᴡᴇʀᴅ ʙʏ 𝐐ᴜᴇᴇɴ 𝐑ᴀꜱʜᴜ 𝐌ɪɴɪ 🎀*`,
+            },
+            { quoted: msg }
+        );
+
+        // send document
+        await socket.sendMessage(
+            sender,
+            {
+                document: { url: finalUrl },
+                mimetype: "video/mp4",
+                fileName: `${title}.mp4`,
+                caption: `📦 *Document Version*\n\n🎬 ${title}`,
+            },
+            { quoted: msg }
+        );
+
+        await socket.sendMessage(sender, {
+            text: "✅ *Video & Document sent successfully!*",
+        });
+
+    } catch (e) {
+        console.error("[VIDEO CASE ERROR]:", e);
+        await socket.sendMessage(sender, {
+            text: "❌ Download failed: " + e.message,
+        });
+    }
+
+    break;
+}
 
 // ==========================================
 
