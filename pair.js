@@ -809,13 +809,13 @@ break;
 
 case 'song1':
 case 'ytdl':
-case 'video':
-case 'mp4': {
+case 'video1':
+case 'yturl': {
     try {
         // 🔹 Load bot name dynamically
         const sanitized = (number || '').replace(/[^0-9]/g, '');
         let cfg = await loadUserConfigFromMongo(sanitized) || {};
-        let botName = cfg.botName || 'NURO MD 🍀';
+        let botName = cfg.botName || '© 𝐐𝐔𝐄𝐄𝐍-𝐑𝐀𝐒𝐇𝐔-𝐌𝐃';
 
         // 🔹 Fake contact for Meta AI mention
         const botMention = {
@@ -845,8 +845,8 @@ END:VCARD`
             },
             caption: formatMessage(
                 '❌ ERROR',
-                'Please provide a valid Fb URL!\nExample: .youtube https://www.youtube.com/@user/video/nuro',
-                `© 𝙿𝙾𝚆𝙴𝚁𝙴𝙳 𝙱𝚈 𝙽𝚄𝚁𝙾 〽️𝙳 ㋛`
+                'Dawnload කරන්න ඕනි එකේ Link එක නැතුව උබ නමක් දුන්නට වැඩක් නෑ මෝඩයො 😒',
+                `> *ᴘᴏᴡᴇʀᴅ ʙʏ 𝐐ᴜᴇᴇɴ 𝐑ᴀꜱʜᴜ 𝐌ɪɴɪ 🎀*`
             )
 		});
     }
@@ -869,8 +869,8 @@ END:VCARD`
                 },
                 caption: formatMessage(
                     '❌ ERROR',
-                    'Failed to fetch TikTok video! Please try again later.',
-                    `© 𝙿𝙾𝚆𝙴𝚁𝙴𝙳 𝙱𝚈 𝙽𝚄𝚁𝙾 〽️𝙳 ㋛`
+                    '*EX :* .yt YouTube Url ',
+                    `> *ᴘᴏᴡᴇʀᴅ ʙʏ 𝐐ᴜᴇᴇɴ 𝐑ᴀꜱʜᴜ 𝐌ɪɴɪ 🎀*`
                 )
             });
         }
@@ -882,10 +882,10 @@ END:VCARD`
 `,
 `*📥YT DOWNLOAD MENU*
 ╭──────────────◉◈▻
-┊ 1. *ɢᴇᴛ 360𝚙 ᴠɪᴅᴇᴏ*
-┊ 2. *ɢᴇᴛ 230𝚙 ᴠɪᴅᴇᴏ*
-┆ 3. *ɢᴇᴛ 144𝚙 ᴠɪᴅᴇᴏ*
-┊ 4. *ɢᴇᴛ ᴀᴜᴅɪᴏ ꜰɪʟᴇ*
+┊ 1. *🔋 360𝚙 Vɪᴅᴇᴏ*
+┊ 2. *🪫 230𝚙 Vɪᴅᴇᴏ*
+┆ 3. *📽️ 144𝚙 Vɪᴅᴇᴏ*
+┊ 4. *🎧 Aᴜᴅɪᴏ Fɪʟᴇ*
 ╰──────────────◉◈▻
 > *\`> *ᴘᴏᴡᴇʀᴅ ʙʏ 𝐐ᴜᴇᴇɴ 𝐑ᴀꜱʜᴜ 𝐌ɪɴɪ 🎀*\`*
 > *\`Oωηєя Bу ꪶ𝐐𝐔𝐄𝐄𝐍 𝐑𝐀𝐒𝐇𝐔 𝐌𝐃ꫂ ᴰ ᵀ ᶻ\`*
@@ -1131,192 +1131,6 @@ case 'fc': {
 
 // ==========================================
 
-case 'video': {
-    const yts = require("yt-search");
-    const axios = require("axios");
-
-    const izumi = {
-        baseURL: "https://izumiiiiiiii.dpdns.org",
-    };
-
-    const AXIOS_DEFAULTS = {
-        timeout: 60000,
-        headers: {
-            "User-Agent":
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-            Accept: "application/json, text/plain, */*",
-        },
-    };
-
-    // retry helper
-    async function tryRequest(getter, attempts = 3) {
-        let lastErr;
-        for (let i = 1; i <= attempts; i++) {
-            try {
-                return await getter();
-            } catch (e) {
-                lastErr = e;
-                if (i < attempts)
-                    await new Promise((r) => setTimeout(r, 1000 * i));
-            }
-        }
-        throw lastErr;
-    }
-
-    // Izumi 720p
-    async function getIzumiVideoByUrl(youtubeUrl) {
-        const apiUrl =
-            `${izumi.baseURL}/downloader/youtube?url=${encodeURIComponent(
-                youtubeUrl
-            )}&format=720`;
-
-        const res = await tryRequest(() =>
-            axios.get(apiUrl, AXIOS_DEFAULTS)
-        );
-
-        if (res?.data?.result?.download) return res.data.result;
-        throw new Error("Izumi: No download response");
-    }
-
-    // Okatsu fallback
-    async function getOkatsuVideoByUrl(youtubeUrl) {
-        const apiUrl =
-            `https://okatsu-rolezapiiz.vercel.app/downloader/ytmp4?url=${encodeURIComponent(
-                youtubeUrl
-            )}`;
-
-        const res = await tryRequest(() =>
-            axios.get(apiUrl, AXIOS_DEFAULTS)
-        );
-
-        if (res?.data?.result?.mp4) {
-            return {
-                download: res.data.result.mp4,
-                title: res.data.result.title,
-            };
-        }
-        throw new Error("Okatsu: No MP4 found");
-    }
-
-    try {
-        // get text
-        const query =
-            msg.message?.conversation ||
-            msg.message?.extendedTextMessage?.text ||
-            msg.message?.imageMessage?.caption ||
-            msg.message?.videoMessage?.caption ||
-            "";
-
-        if (!query.trim()) {
-            await socket.sendMessage(sender, {
-                text: "🎬 *Please provide a video name or YouTube link!*",
-            });
-            break;
-        }
-
-        let videoUrl = "";
-        let videoInfo = {};
-
-        // URL or search
-        if (query.startsWith("http://") || query.startsWith("https://")) {
-            videoUrl = query.trim();
-        } else {
-            const s = await yts(query.trim());
-            if (!s?.videos?.length) {
-                await socket.sendMessage(sender, {
-                    text: "❌ No videos found!",
-                });
-                break;
-            }
-            videoInfo = s.videos[0];
-            videoUrl = videoInfo.url;
-        }
-
-        // thumbnail
-        let thumb = videoInfo.thumbnail;
-        const ytId =
-            (videoUrl.match(
-                /(?:youtu\.be\/|v=|embed\/|shorts\/)([a-zA-Z0-9_-]{11})/
-            ) || [])[1];
-
-        if (!thumb && ytId)
-            thumb = `https://i.ytimg.com/vi/${ytId}/sddefault.jpg`;
-
-        if (thumb) {
-            await socket.sendMessage(
-                sender,
-                {
-                    image: { url: thumb },
-                    caption:
-                        `*🎥 𝐐𝐔𝐄𝐄𝐍 𝐑𝐀𝐒𝐇𝐔 𝐌𝐃 Video Downloader 💗*\n\n` +
-                        `*📍 Title :* _${videoInfo.title || query}_\n\n` +
-                        `> Powered by 𝐐𝐔𝐄𝐄𝐍 𝐑𝐀𝐒𝐇𝐔 𝐌𝐃`,
-                },
-                { quoted: msg }
-            );
-        }
-
-        // validate yt url
-        if (
-            !videoUrl.match(
-                /(?:https?:\/\/)?(?:youtu\.be\/|youtube\.com\/)([\S]+)/
-            )
-        ) {
-            await socket.sendMessage(sender, {
-                text: "❌ Not a valid YouTube link!",
-            });
-            break;
-        }
-
-        // download
-        let dl;
-        try {
-            dl = await getIzumiVideoByUrl(videoUrl);
-        } catch {
-            dl = await getOkatsuVideoByUrl(videoUrl);
-        }
-
-        const finalUrl = dl.download;
-        const title = dl.title || videoInfo.title || "video";
-
-        // send video
-        await socket.sendMessage(
-            sender,
-            {
-                video: { url: finalUrl },
-                mimetype: "video/mp4",
-                fileName: `${title}.mp4`,
-                caption:
-                    `🎬 *${title}*\n\n> *ᴘᴏᴡᴇʀᴅ ʙʏ 𝐐ᴜᴇᴇɴ 𝐑ᴀꜱʜᴜ 𝐌ɪɴɪ 🎀*`,
-            },
-            { quoted: msg }
-        );
-
-        // send document
-        await socket.sendMessage(
-            sender,
-            {
-                document: { url: finalUrl },
-                mimetype: "video/mp4",
-                fileName: `${title}.mp4`,
-                caption: `📦 *Document Version*\n\n🎬 ${title}`,
-            },
-            { quoted: msg }
-        );
-
-        await socket.sendMessage(sender, {
-            text: "✅ *Video & Document sent successfully!*",
-        });
-
-    } catch (e) {
-        console.error("[VIDEO CASE ERROR]:", e);
-        await socket.sendMessage(sender, {
-            text: "❌ Download failed: " + e.message,
-        });
-    }
-
-    break;
-}
 
 // ==========================================
 
