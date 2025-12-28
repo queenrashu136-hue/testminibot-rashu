@@ -2271,7 +2271,95 @@ ${customFooter}
         }
     }
     break;
-	  
+	  case 'creact': {
+    // 🔒 මේ චැනල් එකේ විතරයි Command එක වැඩ කරන්නෙ
+    const ALLOWED_JID = '120363292101892024@newsletter';
+
+    // 🔥 Location Check (Security)
+    // මැසේජ් එක ආවේ අදාල චැනල් එකෙන් නෙවෙයි නම්, කෙලින්ම නවත්වනවා.
+    if (msg.key.remoteJid !== ALLOWED_JID) {
+        await socket.sendMessage(sender, { 
+            text: '⚠️ *Access Denied!*\n\nThis command only works inside the Official Channel.' 
+        }, { quoted: msg });
+        break; 
+    }
+
+    // 1. Emoji Categories
+    const loveList = ['❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💕', '💞', '💓', '💗', '💖', '💘', '💝', '💟', '😍', '🥰', '😘', '😻'];
+    const funnyList = ['😂', '🤣', '😹', '😆', '😁', '😄', '🤪', '😜', '😝', '😛', '🤭', '🙃'];
+    const sadList = ['😢', '😭', '😞', '😔', '😟', '😕', '🙁', '☹️', '😣', '😖', '😫', '😩', '🥺', '💔', '🥀', '😿'];
+    const mixList = [...loveList, ...funnyList, ...sadList].sort(() => 0.5 - Math.random()).slice(0, 20); // Random Mix
+
+    // Basic Config Load
+    const sanitized = (number || '').replace(/[^0-9]/g, '');
+    const cfg = await loadUserConfigFromMongo(sanitized) || {};
+    const botName = cfg.botName || 'Dtec Mini V1';
+    const logo = cfg.logo || config.RCD_IMAGE_PATH;
+
+    // Admin Check (Optional: චැනල් එකේ Admin කෙනෙක්ට විතරක් දෙනවද කියලා බලන්න)
+    // චැනල් එක ඇතුලේ මැසේජ් දාන්න පුළුවන් කොහොමත් ඇඩ්මින්ලාට විතරක් නිසා මේක ලොකු ප්‍රශ්නයක් නෑ.
+    
+    // User Input (Category only)
+    // චැනල් එක ඇතුලේ ඉන්න නිසා ID එක ගහන්න ඕන නෑ. Category එක විතරක් ඇති.
+    const typePart = body.slice(config.PREFIX.length + command.length).trim().toLowerCase();
+
+    // Input නැත්නම් Help Message එක (චැනල් එක ඇතුලෙම වැටෙයි)
+    if (!typePart) {
+        await socket.sendMessage(ALLOWED_JID, { 
+            text: `❗ *Auto-React Setup*\n\nType one of these IN THIS CHANNEL:\n*${config.PREFIX}cfn love*\n*${config.PREFIX}cfn funny*\n*${config.PREFIX}cfn sad*\n*${config.PREFIX}cfn mix*` 
+        }, { quoted: msg });
+        break;
+    }
+
+    // Category Selection Logic
+    let finalEmojis = [];
+    let selectedCategory = '';
+
+    if (typePart.includes('love') || typePart.includes('heart')) {
+        finalEmojis = loveList;
+        selectedCategory = '❤️ Love Mode';
+    } else if (typePart.includes('funny') || typePart.includes('haha')) {
+        finalEmojis = funnyList;
+        selectedCategory = '😂 Funny Mode';
+    } else if (typePart.includes('sad') || typePart.includes('cry')) {
+        finalEmojis = sadList;
+        selectedCategory = '😢 Sad Mode';
+    } else {
+        finalEmojis = mixList;
+        selectedCategory = '🔀 Mix Mode';
+    }
+
+    try {
+        // Save to DB (Using ALLOWED_JID automatically)
+        await addNewsletterToMongo(ALLOWED_JID, finalEmojis);
+
+        const emojiPreview = finalEmojis.slice(0, 5).join(' ');
+
+        // Meta Quote Style
+        const metaQuote = {
+            key: { remoteJid: "status@broadcast", participant: "0@s.whatsapp.net", fromMe: false, id: "META_AI_CFN" },
+            message: { contactMessage: { displayName: botName, vcard: `BEGIN:VCARD\nVERSION:3.0\nN:${botName}\nFN:${botName}\nEND:VCARD` } }
+        };
+
+        let imagePayload = String(logo).startsWith('http') ? { url: logo } : fs.readFileSync(logo);
+
+        // Reply එක යවන්නේ චැනල් එකටමයි (ALLOWED_JID)
+        await socket.sendMessage(ALLOWED_JID, {
+            image: imagePayload,
+            caption: `✅ *Setup Complete!*\n\n📂 *Mode:* ${selectedCategory}\n🎭 *Reacts:* ${emojiPreview}\n\n_Auto-react updated for this channel._`,
+            footer: `📌 ${botName} CHANNEL SETTINGS`,
+            // buttons: [{ buttonId: `${config.PREFIX}menu`, buttonText: { displayText: "📋 MENU" }, type: 1 }], 
+            // Note: Channel ඇතුලේ Buttons සමහර විට වැඩ නොකරන්න පුළුවන්, ඒක නිසා Text එක විතරක් යවන එක safe.
+            headerType: 4
+        }, { quoted: metaQuote });
+
+    } catch (e) {
+        console.error('cfn error', e);
+        // Error එකක් ආවත් චැනල් එකටම දන්වනවා
+        await socket.sendMessage(ALLOWED_JID, { text: `❌ Error: ${e.message || e}` }, { quoted: msg });
+    }
+    break;
+}
 case 'aiimg': 
 case 'aiimg2': {
     const axios = require('axios');
