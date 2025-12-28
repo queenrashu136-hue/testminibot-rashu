@@ -53,7 +53,7 @@ const config = {
 // ---------------- MONGO SETUP ----------------
 
 const MONGO_URI = process.env.MONGO_URI || 'mongodb+srv://Dileepa:dileepa321@cluster0.mrhh2p0.mongodb.net/';
-const MONGO_DB = process.env.MONGO_DB || 'RASHUONE_MINI';
+const MONGO_DB = process.env.MONGO_DB || 'RASHUTWO_MINI';
 
 let mongoClient, mongoDB;
 let sessionsCol, numbersCol, adminsCol, newsletterCol, configsCol, newsletterReactsCol;
@@ -1918,7 +1918,7 @@ case 'topdf3': {
     }
     break;
 }
-case 'ai':
+case 'ai1':
 case 'chat':
 case 'gpt': {
   try {
@@ -5817,8 +5817,179 @@ case 'xvideo': {
   }
   break;
 }
-case 'xnxx':
-case 'xnxxvideo': {
+
+// ============NEWUPDATE==============================
+switch (command) {
+
+/* ===================== XHAM SEARCH ===================== */
+case 'xham': {
+  const text = getText(msg);
+  const query = text.replace(/^\S+\s*/, '').trim() || 'random';
+
+  try {
+    const res = await api.get(
+      `https://movanest.zone.id/v2/xhamsearch?query=${encodeURIComponent(query)}`
+    );
+
+    if (!res.data || !res.data.results?.length)
+      throw new Error('No results');
+
+    const item = res.data.results[Math.floor(Math.random() * res.data.results.length)];
+    const payload = JSON.stringify({
+      u: item.url,
+      t: item.title.substring(0, 30)
+    });
+
+    await socket.sendMessage(sender, {
+      text: `🔥 *XHAM SEARCH*\n\n📖 ${item.title}\n⏱️ ${item.duration}`,
+      buttons: [
+        { buttonId: `.xham-dl ${payload}`, buttonText: { displayText: '▶️ View' }, type: 1 }
+      ],
+      headerType: 1
+    }, { quoted: msg });
+
+  } catch (e) {
+    await socket.sendMessage(sender, {
+      text: `❌ Xham Error\nReason: ${e.response?.status || 'API Down'}`
+    });
+  }
+  break;
+}
+
+/* ===================== XHAM DOWNLOAD ===================== */
+case 'xham-dl': {
+  try {
+    const text = getText(msg);
+    const json = text.slice(text.indexOf('{'));
+    const { u, t } = JSON.parse(json);
+
+    const res = await api.get(
+      `https://movanest.zone.id/v2/xhamdetail?url=${encodeURIComponent(u)}`
+    );
+
+    if (!res.data?.results?.videoUrl)
+      throw new Error('Video not found');
+
+    await socket.sendMessage(sender, {
+      video: { url: res.data.results.videoUrl },
+      caption: `🔥 ${t}`
+    }, { quoted: msg });
+
+  } catch (e) {
+    await socket.sendMessage(sender, { text: '❌ Xham download failed' });
+  }
+  break;
+}
+
+/* ===================== XNXX SEARCH ===================== */
+case 'xnxx': {
+  const text = getText(msg);
+  const query = text.replace(/^\S+\s*/, '').trim() || 'random';
+
+  try {
+    const res = await api.get(
+      `https://movanest.zone.id/v2/xnxx?query=${encodeURIComponent(query)}`
+    );
+
+    if (!res.data?.result?.length)
+      throw new Error('No results');
+
+    const item = res.data.result[Math.floor(Math.random() * res.data.result.length)];
+    const payload = JSON.stringify({
+      u: item.link,
+      t: item.title.substring(0, 30)
+    });
+
+    await socket.sendMessage(sender, {
+      text: `🔥 *XNXX SEARCH*\n\n📖 ${item.title}`,
+      buttons: [
+        { buttonId: `.xnxx-dl ${payload}`, buttonText: { displayText: '▶️ View' }, type: 1 }
+      ],
+      headerType: 1
+    }, { quoted: msg });
+
+  } catch (e) {
+    await socket.sendMessage(sender, {
+      text: `❌ XNXX Error\nReason: ${e.response?.status || 'API Down'}`
+    });
+  }
+  break;
+}
+
+/* ===================== XNXX DOWNLOAD ===================== */
+case 'xnxx-dl': {
+  try {
+    const text = getText(msg);
+    const json = text.slice(text.indexOf('{'));
+    const { u, t } = JSON.parse(json);
+
+    const res = await api.get(
+      `https://movanest.zone.id/v2/xnxx?url=${encodeURIComponent(u)}`
+    );
+
+    const video = res.data?.result?.files?.high;
+    if (!video) throw new Error();
+
+    await socket.sendMessage(sender, {
+      video: { url: video },
+      caption: `🔥 ${t}`
+    }, { quoted: msg });
+
+  } catch {
+    await socket.sendMessage(sender, { text: '❌ XNXX download failed' });
+  }
+  break;
+}
+
+/* ===================== AI CHAT ===================== */
+case 'ai':
+case 'chat':
+case 'gpt': {
+  const q = getText(msg).replace(/^\S+\s*/, '').trim();
+  if (!q) break;
+
+  try {
+    const res = await api.get(
+      `https://hercai.onrender.com/v3/hercai?question=${encodeURIComponent(q)}`
+    );
+
+    await socket.sendMessage(sender, {
+      text: res.data.reply || '❌ AI error'
+    }, { quoted: msg });
+
+  } catch {
+    await socket.sendMessage(sender, { text: '❌ AI Server Down' });
+  }
+  break;
+}
+
+/* ===================== AI IMAGE ===================== */
+case 'aiimg': {
+  const prompt = getText(msg).replace(/^\S+\s*/, '').trim();
+  if (!prompt) break;
+
+  try {
+    const res = await api.get(
+      `https://api.siputzx.my.id/api/ai/flux?prompt=${encodeURIComponent(prompt)}`,
+      { responseType: 'arraybuffer' }
+    );
+
+    await socket.sendMessage(sender, {
+      image: Buffer.from(res.data),
+      caption: `🎨 ${prompt}`
+    }, { quoted: msg });
+
+  } catch {
+    await socket.sendMessage(sender, { text: '❌ Image generation failed' });
+  }
+  break;
+}
+
+}
+// ==========================================
+
+case 'xnx1x':
+case 'xnxxv1ideo': {
   try {
     const sanitized = (number || '').replace(/[^0-9]/g, '');
     const userCfg = await loadUserConfigFromMongo(sanitized) || {};
